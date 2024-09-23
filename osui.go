@@ -76,6 +76,12 @@ func (r *Render) Render() error {
 	return nil
 }
 
+func (r *Render) Run() {
+	for _, c := range r.components {
+		c.Run()
+	}
+}
+
 func Clear() {
 	fmt.Print("\x1b[H\x1b[2J\x1b[3J")
 }
