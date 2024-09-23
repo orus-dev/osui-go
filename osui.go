@@ -10,26 +10,34 @@ import (
 
 type Component interface {
 	Render(*ComponentWrapper) string
-	Run(*ComponentWrapper, ...any) any
+	Run(*ComponentWrapper) error
 }
 
 type ComponentWrapper struct {
 	Component Component
 	X         uint16
 	Y         uint16
-	Render    *Render
+	render    *Render
 	Update    func(*ComponentWrapper, any) UpdateOutput_
-	Data      string
 }
 
-func (c *ComponentWrapper) Run(a ...any) any {
-	c.Render.Render()
-	return c.Component.Run(c, a)
+func (c *ComponentWrapper) Run() {
+	c.Component.Run(c)
+}
+
+func (cw *ComponentWrapper) Render(c Component) error {
+	cw.Component = c
+	return cw.render.Render()
+}
+
+func (c *ComponentWrapper) SetRender(r *Render) {
+	c.render = r
 }
 
 func NewComponent(c Component) *ComponentWrapper {
 	return &ComponentWrapper{
 		Component: c,
+		Update:    func(cw *ComponentWrapper, a any) UpdateOutput_ { return UpdateOutput.Continue },
 	}
 }
 
@@ -42,7 +50,7 @@ func NewRender() *Render {
 }
 
 func (r *Render) Add(c *ComponentWrapper) *ComponentWrapper {
-	c.Render = r
+	c.SetRender(r)
 	r.components = append(r.components, c)
 	return c
 }

@@ -7,33 +7,36 @@ import (
 	"github.com/orus-dev/osui"
 )
 
-type ComponentText struct{ Text string }
+type ComponentText struct {
+	Text string
+}
 
 func (t ComponentText) Render(cw *osui.ComponentWrapper) string {
 	return t.Text
 }
 
-func (t ComponentText) Run(cw *osui.ComponentWrapper, a ...any) any {
+func (t ComponentText) Run(cw *osui.ComponentWrapper) error {
 	return nil
 }
 
 type ComponentInputBox struct {
 	max_size uint
+	data     string
 }
 
 func (s ComponentInputBox) Render(cw *osui.ComponentWrapper) string {
 	return fmt.Sprintf(
 		" %s\n|%s%s|\n %s",
 		strings.Repeat("_", int(s.max_size)),
-		cw.Data,
-		strings.Repeat(" ", int(s.max_size)-len(cw.Data)),
+		s.data,
+		strings.Repeat(" ", int(s.max_size)-len(s.data)),
 		strings.Repeat("‾", int(s.max_size)),
 	)
 }
 
-func (s ComponentInputBox) Run(cw *osui.ComponentWrapper, a ...any) any {
+func (s ComponentInputBox) Run(cw *osui.ComponentWrapper) error {
 	for {
-		fmt.Printf("\x1B[%d;%dH", cw.Y+2, int(cw.X+2)+len(cw.Data))
+		fmt.Printf("\x1B[%d;%dH", cw.Y+2, int(cw.X+2)+len(s.data))
 		key, err := osui.ReadKey()
 		if err != nil {
 			fmt.Println(err)
@@ -45,26 +48,26 @@ func (s ComponentInputBox) Run(cw *osui.ComponentWrapper, a ...any) any {
 			continue
 		case osui.UpdateOutput.Exit:
 			fmt.Print("\n\n")
-			return cw.Data
+			return nil
 
 		}
 		switch key {
 
 		case osui.Key.Enter:
 			fmt.Print("\n\n")
-			return cw.Data
+			return nil
 
 		case osui.Key.Backspace:
-			if len(cw.Data) > 0 {
-				cw.Data = cw.Data[:len(cw.Data)-1]
+			if len(s.data) > 0 {
+				s.data = s.data[:len(s.data)-1]
 			}
 
 		default:
-			if int(s.max_size) > len(cw.Data) {
-				cw.Data += key
+			if int(s.max_size) > len(s.data) {
+				s.data += key
 			}
 		}
-		cw.Render.Render()
+		cw.Render(s)
 	}
-	return cw.Data
+	return nil
 }
