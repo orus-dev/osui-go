@@ -20,6 +20,8 @@ type Component interface {
 
 type Screen struct {
 	components []Component
+	Width      int
+	Height     int
 }
 
 func NewScreen(c ...Component) *Screen {
@@ -38,13 +40,12 @@ func NewScreen(c ...Component) *Screen {
 func (s *Screen) Render() error {
 	Clear()
 	width, height, err := term.GetSize(0)
+	s.Width = width
+	s.Height = height
 	if err != nil {
 		return fmt.Errorf("error getting the terminal size: %s", err)
 	}
-	frame := make([]string, height)
-	for i := 0; i < height; i++ {
-		frame[i] = strings.Repeat(" ", width)
-	}
+	frame := NewFrame(width, height)
 	for _, component := range s.components {
 		RenderOnFrame(component, &frame)
 	}

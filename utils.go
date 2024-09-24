@@ -1,8 +1,11 @@
 package osui
 
 import (
-	"fmt"
 	"os"
+	"os/exec"
+	"reflect"
+	"regexp"
+	"runtime"
 	"strings"
 
 	"golang.org/x/term"
@@ -27,11 +30,34 @@ func renderLine(frameLine, line string, x int) string {
 
 func RenderOnFrame(c Component, frame *[]string) {
 	componentData := c.GetComponentData()
-	for i, line := range strings.Split(c.Render(), "\n") {
+	for i, lo := range strings.Split(c.Render(), "\n") {
 		if int(componentData.Y)+i < len(*frame) {
-			(*frame)[int(componentData.Y)+i] = renderLine((*frame)[int(componentData.Y)+i], line, int(componentData.X))
+			fo := (*frame)[int(componentData.Y)+i]
+			f, fa := CompressString(fo, "\b")
+			line, la := CompressString(lo, "\t")
+			r := renderLine(f, line, int(componentData.X))
+			(*frame)[int(componentData.Y)+i] = DecompressString(DecompressString(r, la, "\t"), fa, "\b")
 		}
 	}
+}
+
+func CompressString(input, repl string) (string, []string) {
+	pattern := `\x1b\[([0-9;]*)m`
+	re := regexp.MustCompile(pattern)
+	matches := re.FindAllString(input, -1)
+	return re.ReplaceAllString(input, repl), matches
+}
+
+func DecompressString(modified string, outputArray []string, c string) string {
+	parts := strings.Split(modified, c)
+	reconstructed := ""
+	for i, part := range parts {
+		reconstructed += part
+		if i < len(outputArray) {
+			reconstructed += outputArray[i]
+		}
+	}
+	return reconstructed
 }
 
 func ReadKey() (string, error) {
@@ -48,8 +74,47 @@ func ReadKey() (string, error) {
 	return string(b[:n]), nil
 }
 
+func NewFrame(width, height int) []string {
+	frame := make([]string, height)
+	for i := 0; i < height; i++ {
+		frame[i] = strings.Repeat(" ", width)
+	}
+	return frame
+}
+
 func Clear() {
-	fmt.Print("\x1b[H\x1b[2J\x1b[3J")
+	switch runtime.GOOS {
+	case "windows":
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	default:
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func SetDefaults(p interface{}) interface{} {
+	v := reflect.ValueOf(p)
+	if v.Kind() != reflect.Ptr {
+		panic("setDefaults: expected a pointer to a struct")
+	}
+	val := v.Elem()
+	if val.Kind() != reflect.Struct {
+		panic("setDefaults: expected a pointer to a struct")
+	}
+	typ := val.Type()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		structField := typ.Field(i)
+		if defaultValue, ok := structField.Tag.Lookup("default"); ok {
+			if field.Kind() == reflect.String && field.String() == "" {
+				field.SetString(defaultValue)
+			}
+		}
+	}
+	return p
 }
 
 type Key_ = string
