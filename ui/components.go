@@ -7,67 +7,64 @@ import (
 	"github.com/orus-dev/osui"
 )
 
-type ComponentText struct {
+type TextComponent struct {
+	Data osui.ComponentData
 	Text string
 }
 
-func (t ComponentText) Render(cw *osui.ComponentWrapper) string {
+func (t *TextComponent) GetComponentData() *osui.ComponentData {
+	return &t.Data
+}
+
+func (t TextComponent) Render() string {
 	return t.Text
 }
 
-func (t ComponentText) Run(cw *osui.ComponentWrapper) error {
-	return nil
+type InputBoxComponent struct {
+	Data      osui.ComponentData
+	max_size  uint
+	InputData string
 }
 
-type ComponentInputBox struct {
-	max_size uint
-	Data     string
+func (s *InputBoxComponent) GetComponentData() *osui.ComponentData {
+	return &s.Data
 }
 
-func (s ComponentInputBox) Render(cw *osui.ComponentWrapper) string {
+func (s InputBoxComponent) Render() string {
 	return fmt.Sprintf(
 		" %s\n|%s%s|\n %s",
 		strings.Repeat("_", int(s.max_size)),
-		s.Data,
-		strings.Repeat(" ", int(s.max_size)-len(s.Data)),
+		s.InputData,
+		strings.Repeat(" ", int(s.max_size)-len(s.InputData)),
 		strings.Repeat("‾", int(s.max_size)),
 	)
 }
 
-func (s ComponentInputBox) Run(cw *osui.ComponentWrapper) error {
+func (s *InputBoxComponent) Read() error {
 	for {
-		fmt.Printf("\x1B[%d;%dH", cw.Y+2, int(cw.X+2)+len(s.Data))
+		fmt.Printf("\x1B[%d;%dH", s.Data.Y+2, int(s.Data.X+2)+len(s.InputData))
 		key, err := osui.ReadKey()
 		if err != nil {
+			fmt.Print("\n\n")
 			fmt.Println(err)
 			break
 		}
-		switch cw.Update(cw, key) {
-
-		case osui.UpdateOutput.Jmp:
-			continue
-		case osui.UpdateOutput.Exit:
-			fmt.Print("\n\n")
-			return nil
-
-		}
 		switch key {
-
 		case osui.Key.Enter:
 			fmt.Print("\n\n")
 			return nil
 
 		case osui.Key.Backspace:
-			if len(s.Data) > 0 {
-				s.Data = s.Data[:len(s.Data)-1]
+			if len(s.InputData) > 0 {
+				s.InputData = s.InputData[:len(s.InputData)-1]
 			}
 
 		default:
-			if int(s.max_size) > len(s.Data) {
-				s.Data += key
+			if int(s.max_size) > len(s.InputData) {
+				s.InputData += key
 			}
 		}
-		cw.Render(s)
+		s.Data.Screen.Render()
 	}
 	return nil
 }
