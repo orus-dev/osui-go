@@ -9,7 +9,6 @@ import (
 
 type InputBoxComponent struct {
 	Data      osui.ComponentData
-	cursor    string
 	max_size  uint
 	InputData string
 }
@@ -19,13 +18,20 @@ func (s *InputBoxComponent) GetComponentData() *osui.ComponentData {
 }
 
 func (s InputBoxComponent) Render() string {
+	if s.max_size > uint(len(s.InputData)) {
+		return fmt.Sprintf(
+			" %s\n|%s%s|\n %s",
+			strings.Repeat("_", int(s.max_size)),
+			s.InputData+osui.LogicValue(s.Data.IsActive, "█", ""),
+			strings.Repeat(" ", int(s.max_size)-len(s.InputData)-osui.LogicValueInt(s.Data.IsActive, 1, 0)),
+			strings.Repeat("‾", int(s.max_size)),
+		)
+	}
 	return fmt.Sprintf(
-		" %s\n|%s%s|\n %s%s",
+		" %s\n|%s\n %s",
 		strings.Repeat("_", int(s.max_size)),
-		s.InputData,
-		strings.Repeat(" ", int(s.max_size)-len(s.InputData)),
+		s.InputData+osui.LogicValue(s.Data.IsActive, "█", "|"),
 		strings.Repeat("‾", int(s.max_size)),
-		s.cursor,
 	)
 }
 
@@ -46,23 +52,22 @@ func (s *InputBoxComponent) Read() error {
 }
 
 func (s *InputBoxComponent) Update(key string) bool {
-	// s.cursor = fmt.Sprintf("\x1B[%d;%dH", s.Data.Y+2, int(s.Data.X+2)+len(s.InputData))
-	// s.Render()
 	switch key {
+	case "":
 	case osui.Key.Enter:
 		return true
-
 	case osui.Key.Backspace:
 		if len(s.InputData) > 0 {
 			s.InputData = s.InputData[:len(s.InputData)-1]
 		}
 
 	default:
-		if int(s.max_size) > len(s.InputData) {
-			s.InputData += key
+		if len(key) == 1 {
+			if int(s.max_size) > len(s.InputData) {
+				s.InputData += key
+			}
 		}
 	}
-	s.Data.Screen.Render()
 	return false
 }
 

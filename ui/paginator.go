@@ -13,11 +13,10 @@ type PaginatorStyle struct {
 }
 
 type PaginatorComponent struct {
-	Data        osui.ComponentData
-	Style       *PaginatorStyle
-	Pages       []osui.Component
-	UpdatePages map[int]func(string) bool
-	ActivePage  int
+	Data            osui.ComponentData
+	Style           *PaginatorStyle
+	Components      []osui.Component
+	ActiveComponent int
 }
 
 func (p *PaginatorComponent) GetComponentData() *osui.ComponentData {
@@ -25,59 +24,71 @@ func (p *PaginatorComponent) GetComponentData() *osui.ComponentData {
 }
 
 func (p PaginatorComponent) Render() string {
-	pgs := strings.Repeat(" ", p.Data.Screen.Width/2)
-	for page := range p.Pages {
-		if page == p.ActivePage {
+	pgs := strings.Repeat(" ", p.Data.Width/2)
+	for page, c := range p.Components {
+		if page == p.ActiveComponent {
 			pgs += p.Style.Active + "•" + styles.Reset
 		} else {
 			pgs += styles.Reset + "•"
 		}
-	}
-	frame := osui.NewFrame(p.Data.Screen.Width, p.Data.Screen.Height-3)
-	osui.RenderOnFrame(p.Pages[p.ActivePage], &frame)
-	return fmt.Sprintf("%s\n%s", pgs, styles.Reset+strings.Join(frame, "\n"))
-}
-
-func (p *PaginatorComponent) Run() {
-	for _, c := range p.Pages {
 		d := c.GetComponentData()
 		if d.Screen == nil {
 			d.Screen = p.Data.Screen
 		}
+		d.Height = p.Data.Height - 1
+		d.Width = p.Data.Width
 	}
-	for {
-		key, _ := osui.ReadKey()
-		switch key {
-		case "\x1b[Z":
-			if p.ActivePage > 0 {
-				p.ActivePage--
-			} else {
-				p.ActivePage = len(p.Pages) - 1
-			}
-		case osui.Key.Tab:
-			if p.ActivePage < len(p.Pages)-1 {
-				p.ActivePage++
-			} else {
-				p.ActivePage = 0
-			}
-		case osui.Key.Escape:
-			fmt.Print("\n\n")
-			return
-		default:
-			for i, c := range p.UpdatePages {
-				if i == p.ActivePage {
-					c(key)
+	frame := osui.NewFrame(p.Data.Width, p.Data.Height-3)
+	osui.RenderOnFrame(p.Components[p.ActiveComponent], &frame)
+	return fmt.Sprintf("%s\n%s", pgs, styles.Reset+strings.Join(frame, "\n"))
+}
+
+func (p *PaginatorComponent) Update(key string) bool {
+	switch key {
+	case "":
+		p.updateActive(p.ActiveComponent)
+	case "\x1b[Z":
+		if p.ActiveComponent > 0 {
+			p.updateActive(p.ActiveComponent - 1)
+		} else {
+			p.updateActive(len(p.Components) - 1)
+		}
+	case osui.Key.Tab:
+		if p.ActiveComponent < len(p.Components)-1 {
+			p.updateActive(p.ActiveComponent + 1)
+		} else {
+			p.updateActive(0)
+		}
+	case osui.Key.Escape:
+		fmt.Print("\n\n")
+		return true
+	default:
+		if len(p.Components) > 0 {
+			p.Components[p.ActiveComponent].GetComponentData().IsActive = p.Data.IsActive
+			if p.Components[p.ActiveComponent].Update(key) {
+				if p.ActiveComponent < len(p.Components)-1 {
+					p.updateActive(p.ActiveComponent + 1)
+				} else {
+					p.updateActive(0)
 				}
 			}
 		}
-		p.Data.Screen.Render()
+	}
+	return false
+}
+
+func (p *PaginatorComponent) updateActive(newIndex int) {
+	if newIndex >= 0 && newIndex < len(p.Components) && len(p.Components) > 0 {
+		p.Components[p.ActiveComponent].GetComponentData().IsActive = false
+		p.ActiveComponent = newIndex
+		p.Components[p.ActiveComponent].GetComponentData().IsActive = p.Data.IsActive
+		p.Components[p.ActiveComponent].Update("")
 	}
 }
 
 func Paginator(pages ...osui.Component) *PaginatorComponent {
 	return &PaginatorComponent{
-		Pages:       pages,
-		Style:       osui.SetDefaults(&PaginatorStyle{}).(*PaginatorStyle),
-		UpdatePages: make(map[int]func(string) bool),
+		Components: pages,
+		Style:      osui.SetDefaults(&PaginatorStyle{}).(*PaginatorStyle),
 	}
 }

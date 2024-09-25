@@ -9,6 +9,10 @@ type TextComponent struct {
 	Text string
 }
 
+func (t *TextComponent) Update(string) bool {
+	return false
+}
+
 func (t *TextComponent) GetComponentData() *osui.ComponentData {
 	return &t.Data
 }

@@ -1,6 +1,7 @@
 package osui
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"reflect"
@@ -115,6 +116,28 @@ func SetDefaults(p interface{}) interface{} {
 		}
 	}
 	return p
+}
+
+func ShowCursor() {
+	fmt.Print("\033[?25h")
+}
+
+func HideCursor() {
+	fmt.Print("\033[?25l")
+}
+
+func LogicValue(b bool, _if, _else string) string {
+	if b {
+		return _if
+	}
+	return _else
+}
+
+func LogicValueInt(b bool, _if, _else int) int {
+	if b {
+		return _if
+	}
+	return _else
 }
 
 type Key_ = string

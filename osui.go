@@ -8,47 +8,56 @@ import (
 )
 
 type ComponentData struct {
-	X      uint16
-	Y      uint16
-	Screen *Screen
+	X        uint16
+	Y        uint16
+	Width    int
+	Height   int
+	IsActive bool
+	Screen   *Screen
 }
 
 type Component interface {
 	Render() string
 	GetComponentData() *ComponentData
+	Update(string) bool
 }
 
 type Screen struct {
-	components []Component
-	Width      int
-	Height     int
+	component Component
 }
 
-func NewScreen(c ...Component) *Screen {
-	s := &Screen{components: c}
-	for _, component := range s.components {
-		componentData := component.GetComponentData()
-		if componentData.Screen == nil {
-			componentData.Screen = s
-		} else {
-			componentData.Screen.components = s.components
-		}
-	}
+func NewScreen(c Component) *Screen {
+	HideCursor()
+	s := &Screen{component: c}
 	return s
 }
 
 func (s *Screen) Render() error {
 	Clear()
 	width, height, err := term.GetSize(0)
-	s.Width = width
-	s.Height = height
 	if err != nil {
 		return fmt.Errorf("error getting the terminal size: %s", err)
 	}
 	frame := NewFrame(width, height)
-	for _, component := range s.components {
-		RenderOnFrame(component, &frame)
-	}
+	data := s.component.GetComponentData()
+	data.Width = width
+	data.Height = height
+	data.Screen = s
+	data.IsActive = true
+	RenderOnFrame(s.component, &frame)
 	fmt.Print(strings.Join(frame, "\n"))
 	return nil
+}
+
+func (s *Screen) Run() {
+	s.component.GetComponentData().Screen = s
+	s.component.Update("OSUI:RENDER")
+	for {
+		s.Render()
+		k, _ := ReadKey()
+		if s.component.Update(k) {
+			ShowCursor()
+			return
+		}
+	}
 }

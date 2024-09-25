@@ -8,12 +8,9 @@ import (
 
 func main() {
 	colors := ui.Text(
-		styles.Red + "Red!\n" + styles.Green + "Green!\n" + styles.Blue + "Blue!\n",
+		styles.Red + "Red!\n" + styles.Green + "Green!\n" + styles.Blue + "Blue!" + styles.Reset,
 	)
-	input := ui.InputBox(30)
-	paginator := ui.Paginator(colors, input)
-	paginator.UpdatePages[1] = input.Update
+	paginator := ui.Paginator(ui.Div(colors), ui.Div(ui.InputBox(30)))
 	screen := osui.NewScreen(paginator)
-	screen.Render()
-	paginator.Run()
+	screen.Run()
 }
