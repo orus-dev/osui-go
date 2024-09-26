@@ -14,30 +14,16 @@ import (
 )
 
 func renderLine(frameLine, line string, x int) string {
-	result := []rune(frameLine) // Convert frameLine to a slice of runes for mutability
-	visibleCount := 0           // Track visible characters in frameLine
+	result := []rune(frameLine)
+	lineRunes := []rune(line)
+	frameLen := len(result)
+	lineLen := len(lineRunes)
 
-	for _, c := range line {
-		// Skip over non-visible characters when counting the frameLine length
-		for visibleCount < len(result) {
-			if result[visibleCount] == '\t' || result[visibleCount] == '\b' {
-				visibleCount++ // Skip these characters without counting them
-			} else {
-				break
-			}
-		}
-
-		// If visibleCount exceeds the length of frameLine, stop
-		if x+visibleCount >= len(result) {
-			break
-		}
-
-		// Overlay the character from the line onto frameLine at the correct position
-		result[x+visibleCount] = c
-		visibleCount++ // Increment visible character count
+	for i := 0; i < lineLen && x+i < frameLen; i++ {
+		result[x+i] = lineRunes[i]
 	}
 
-	return string(result) // Convert the result back to a string
+	return string(result)
 }
 
 func RenderOnFrame(c Component, frame *[]string) {
