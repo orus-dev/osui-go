@@ -1,32 +1,25 @@
 package main
 
-// IMPORTANT NOTE: Needs bugfix. "Some text here" is distorted
-
 import (
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
+	"github.com/orus-dev/osui/cutils"
 	"github.com/orus-dev/osui/ui"
 )
 
 func main() {
-	// innerDiv := ui.Div(ui.Text("ABC"))
-
-	// innerDiv.Data.X = 4
-	// innerDiv.Style.BackgroundColor = colors.Red
-	// innerDiv.Data.Width = 5
-	// innerDiv.Data.Height = 3
-
-	input := ui.InputBox(30)
-	input.Style.Cursor = colors.Green
-	input.Style.Background = colors.Red
-	input.Style.Outline = colors.Blue
-
-	someText := ui.Text("Some text here")
-	someText.Data.X = 40
-	someText.Data.Y = 1
-
-	div := ui.Div(input, someText)
-
-	screen := osui.NewScreen(div)
+	text := colors.Red + "This is a div!"
+	width, h := osui.GetTerminalSize()
+	paginator := ui.Paginator(
+		ui.Div(
+			ui.Text("Welcome to the example! Press tab to go to the next page or press tab to go to a previous page"),
+		),
+		ui.Div(cutils.WithPosition((width-30)/2, (h-4)/2, cutils.WithSize(30, 4, cutils.WithStyle(&ui.DivStyle{Background: colors.Blue}, ui.Div(ui.Text(text)))))),
+		// ui.Div(
+		// 	ui.Text("This is a InputBox. It takes user input and"),
+		// 	cutils.WithPosition(0, 2, ui.InputBox(20)),
+		// ),
+	)
+	screen := osui.NewScreen(paginator)
 	screen.Run()
 }

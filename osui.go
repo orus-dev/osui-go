@@ -5,12 +5,11 @@ import (
 	"strings"
 
 	"github.com/orus-dev/osui/colors"
-	"golang.org/x/term"
 )
 
 type ComponentData struct {
-	X            uint16
-	Y            uint16
+	X            int
+	Y            int
 	Width        int
 	Height       int
 	DefaultColor string
@@ -22,6 +21,7 @@ type Component interface {
 	Render() string
 	GetComponentData() *ComponentData
 	Update(string) bool
+	SetStyle(interface{})
 }
 
 type Screen struct {
@@ -41,10 +41,7 @@ func (s *Screen) Render() error {
 		return nil
 	}
 	Clear()
-	width, height, err := term.GetSize(0)
-	if err != nil {
-		return fmt.Errorf("error getting the terminal size: %s", err)
-	}
+	width, height := GetTerminalSize()
 	frame := NewFrame(width, height)
 	data := s.component.GetComponentData()
 	if data.Height == 0 {

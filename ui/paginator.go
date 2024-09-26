@@ -9,7 +9,8 @@ import (
 )
 
 type PaginatorStyle struct {
-	Active string `default:"\033[32m"`
+	Active   string `default:"\033[32m"`
+	Inactive string `default:""`
 }
 
 type PaginatorComponent struct {
@@ -23,25 +24,33 @@ func (p *PaginatorComponent) GetComponentData() *osui.ComponentData {
 	return &p.Data
 }
 
-func (p PaginatorComponent) Render() string {
-	pgs := strings.Repeat(" ", p.Data.Width/2)
-	for page, c := range p.Components {
+func (p *PaginatorComponent) Render() string {
+	width, _ := osui.GetTerminalSize()
+	pgs := strings.Repeat(" ", (width-len(p.Components))/2)
+	osui.UseStyle(p.Style)
+	frame := osui.NewFrame(p.Data.Width, p.Data.Height)
+	for i, c := range p.Components {
 		data := c.GetComponentData()
-		if page == p.ActiveComponent {
-			data.IsActive = true
+		if i == p.ActiveComponent {
 			pgs += p.Style.Active + "•" + colors.Reset
+			data.IsActive = true
 		} else {
-			pgs += colors.Reset + "•"
+			pgs += colors.Reset + p.Style.Inactive + "•"
 			data.IsActive = false
 		}
-		if data.Screen == nil {
-			data.Screen = p.Data.Screen
+		if data.Width == 0 {
+			data.Width = p.Data.Width
 		}
-		data.Height = p.Data.Height - 1
-		data.Width = p.Data.Width
+		if data.Height == 0 {
+			data.Height = p.Data.Height
+		}
+		data.DefaultColor = p.Data.DefaultColor
+		data.Screen = p.Data.Screen
 	}
-	frame := osui.NewFrame(p.Data.Width, p.Data.Height-3)
 	osui.RenderOnFrame(p.Components[p.ActiveComponent], &frame)
+	for i, f := range frame {
+		frame[i] = colors.Reset + p.Data.DefaultColor + f + colors.Reset
+	}
 	return fmt.Sprintf("%s\n%s", pgs, colors.Reset+strings.Join(frame, "\n"))
 }
 
@@ -81,6 +90,10 @@ func (p *PaginatorComponent) updateActive(newIndex int) {
 	if newIndex >= 0 && newIndex < len(p.Components) && len(p.Components) > 0 {
 		p.ActiveComponent = newIndex
 	}
+}
+
+func (p *PaginatorComponent) SetStyle(c interface{}) {
+	p.Style = osui.SetDefaults(c.(*PaginatorStyle)).(*PaginatorStyle)
 }
 
 func Paginator(pages ...osui.Component) *PaginatorComponent {

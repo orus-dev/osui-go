@@ -44,7 +44,7 @@ func (d *DivComponent) Render() string {
 		osui.RenderOnFrame(c, &frame)
 	}
 	for i, f := range frame {
-		frame[i] = colors.Combine(d.Style.Foreground, d.Style.Background) + f + d.Data.DefaultColor
+		frame[i] = colors.Reset + d.Data.DefaultColor + colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset + d.Data.DefaultColor
 	}
 	return strings.Join(frame, "\n")
 }
@@ -73,15 +73,20 @@ func (d *DivComponent) Update(key string) bool {
 		if len(d.Components) > 0 {
 			d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
 			if d.Components[d.ActiveComponent].Update(key) {
-				if d.ActiveComponent < len(d.Components)-1 {
-					d.updateActive(d.ActiveComponent + 1)
-				} else {
-					return true
-				}
+				return true
+				// if d.ActiveComponent < len(d.Components)-1 {
+				// 	d.updateActive(d.ActiveComponent + 1)
+				// } else {
+				// 	return true
+				// }
 			}
 		}
 	}
 	return false
+}
+
+func (d *DivComponent) SetStyle(c interface{}) {
+	d.Style = osui.SetDefaults(c.(*DivStyle)).(*DivStyle)
 }
 
 func (d *DivComponent) updateActive(newIndex int) {

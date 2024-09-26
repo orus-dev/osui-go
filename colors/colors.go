@@ -7,21 +7,21 @@ import (
 )
 
 const (
-	Reset     = "\033[0m"
-	Bold      = "\033[1m"
-	Underline = "\033[4m"
-	Italic    = "\033[3m"
-	Reverse   = "\033[7m"
-	Strike    = "\033[9m"
+	Reset     = "\x1b[0m"
+	Bold      = "\x1b[1m"
+	Underline = "\x1b[4m"
+	Italic    = "\x1b[3m"
+	Reverse   = "\x1b[7m"
+	Strike    = "\x1b[9m"
 
-	Black   = "\033[30m"
-	Red     = "\033[31m"
-	Green   = "\033[32m"
-	Yellow  = "\033[33m"
-	Blue    = "\033[34m"
-	Magenta = "\033[35m"
-	Cyan    = "\033[36m"
-	White   = "\033[37m"
+	Black   = "\x1b[30m"
+	Red     = "\x1b[31m"
+	Green   = "\x1b[32m"
+	Yellow  = "\x1b[33m"
+	Blue    = "\x1b[34m"
+	Magenta = "\x1b[35m"
+	Cyan    = "\x1b[36m"
+	White   = "\x1b[37m"
 )
 
 func Rgb(r, g, b uint8) string {

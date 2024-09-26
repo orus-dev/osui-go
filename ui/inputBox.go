@@ -39,11 +39,14 @@ func (s InputBoxComponent) Render() string {
 			s.Style.Outline+strings.Repeat("‾", int(s.max_size))+colors.Reset+s.Data.DefaultColor,
 		)
 	}
+
 	return fmt.Sprintf(
-		" %s\n|%s\n %s",
-		strings.Repeat("_", int(s.max_size)),
-		s.InputData+osui.LogicValue(s.Data.IsActive, "█", "|"),
-		strings.Repeat("‾", int(s.max_size)),
+		" %s\n%s|%s%s\n %s",
+		colors.Reset+s.Style.Outline+strings.Repeat("_", int(s.max_size))+colors.Reset,
+		colors.Reset+s.Style.Outline,
+		colors.Combine(s.Style.Foreground, s.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Style.Cursor+"█", "")+colors.Reset+colors.Reset,
+		colors.Reset+s.Data.DefaultColor,
+		colors.Reset+s.Style.Outline+strings.Repeat("‾", int(s.max_size))+colors.Reset+s.Data.DefaultColor,
 	)
 }
 
@@ -80,6 +83,10 @@ func (s *InputBoxComponent) Update(key string) bool {
 		}
 	}
 	return false
+}
+
+func (d *InputBoxComponent) SetStyle(c interface{}) {
+	d.Style = osui.SetDefaults(c.(*InputBoxStyle)).(*InputBoxStyle)
 }
 
 func InputBox(max_size uint) *InputBoxComponent {

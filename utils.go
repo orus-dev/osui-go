@@ -19,7 +19,22 @@ func renderLine(frameLine, line string, x int) string {
 	frameLen := len(result)
 	lineLen := len(lineRunes)
 
-	for i := 0; i < lineLen && x+i < frameLen; i++ {
+	cl := 0
+	for i, r := range result {
+		if r == '\b' || r == '\t' {
+			cl++
+		}
+		if i > x+1 {
+			break
+		}
+	}
+	x += cl
+
+	for i := 0; i < lineLen && (x+i)-cl < frameLen; i++ {
+		if x+i > frameLen {
+			result = append(result, lineRunes[i])
+			continue
+		}
 		result[x+i] = lineRunes[i]
 	}
 
@@ -34,6 +49,7 @@ func RenderOnFrame(c Component, frame *[]string) {
 			f, fa := CompressString(fo, "\b")
 			line, la := CompressString(lo, "\t")
 			r := renderLine(f, line, int(componentData.X))
+			// (*frame)[int(componentData.Y)+i] = fmt.Sprintf("%#v\n", DecompressString(DecompressString(r, la, "\t"), fa, "\b"))
 			(*frame)[int(componentData.Y)+i] = DecompressString(DecompressString(r, la, "\t"), fa, "\b")
 		}
 	}
@@ -198,4 +214,12 @@ var Key = key{
 	Down:      "\x1b[B",
 	Right:     "\x1b[C",
 	Left:      "\x1b[D",
+}
+
+func GetTerminalSize() (int, int) {
+	w, h, err := term.GetSize(0)
+	if err != nil {
+		panic(err)
+	}
+	return w, h
 }
