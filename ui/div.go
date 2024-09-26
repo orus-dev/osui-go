@@ -4,58 +4,77 @@ import (
 	"strings"
 
 	"github.com/orus-dev/osui"
+	"github.com/orus-dev/osui/colors"
 )
+
+type DivStyle struct {
+	Background string `defaults:"" type:"bg"`
+	Foreground string `defaults:"" type:"fg"`
+}
 
 type DivComponent struct {
 	Data            osui.ComponentData
+	Style           *DivStyle
 	Components      []osui.Component
 	ActiveComponent int
 }
 
-func (p *DivComponent) GetComponentData() *osui.ComponentData {
-	return &p.Data
+func (d *DivComponent) GetComponentData() *osui.ComponentData {
+	return &d.Data
 }
 
-func (p DivComponent) Render() string {
-	frame := osui.NewFrame(p.Data.Width, p.Data.Height)
-	for _, c := range p.Components {
+func (d *DivComponent) Render() string {
+	osui.UseStyle(d.Style)
+	frame := osui.NewFrame(d.Data.Width, d.Data.Height)
+	for i, c := range d.Components {
 		data := c.GetComponentData()
-		data.Width = p.Data.Width
-		data.Height = p.Data.Height
-		data.Screen = p.Data.Screen
+		if i == d.ActiveComponent {
+			data.IsActive = true
+		} else {
+			data.IsActive = false
+		}
+		if data.Width == 0 {
+			data.Width = d.Data.Width
+		}
+		if data.Height == 0 {
+			data.Height = d.Data.Height
+		}
+		data.DefaultColor = colors.Combine(d.Style.Foreground, d.Style.Background)
+		data.Screen = d.Data.Screen
 		osui.RenderOnFrame(c, &frame)
+	}
+	for i, f := range frame {
+		frame[i] = colors.Combine(d.Style.Foreground, d.Style.Background) + f + d.Data.DefaultColor
 	}
 	return strings.Join(frame, "\n")
 }
 
-func (p *DivComponent) Run() {
-	for _, c := range p.Components {
-		d := c.GetComponentData()
-		d.Screen = p.Data.Screen
+func (d *DivComponent) Run() {
+	for _, c := range d.Components {
+		data := c.GetComponentData()
+		data.Screen = d.Data.Screen
 	}
 	for {
 		key, _ := osui.ReadKey()
-		if p.Update(key) {
+		if d.Update(key) {
 			return
 		}
 	}
 }
 
-func (p *DivComponent) Update(key string) bool {
+func (d *DivComponent) Update(key string) bool {
 	switch key {
 
-	case "":
-		p.updateActive(p.ActiveComponent)
 	case osui.Key.Up:
-		p.updateActive(p.ActiveComponent - 1)
+		d.updateActive(d.ActiveComponent - 1)
 	case osui.Key.Down:
-		p.updateActive(p.ActiveComponent + 1)
+		d.updateActive(d.ActiveComponent + 1)
 	default:
-		if len(p.Components) > 0 {
-			p.Components[p.ActiveComponent].GetComponentData().IsActive = p.Data.IsActive
-			if p.Components[p.ActiveComponent].Update(key) {
-				if p.ActiveComponent < len(p.Components)-1 {
-					p.updateActive(p.ActiveComponent + 1)
+		if len(d.Components) > 0 {
+			d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
+			if d.Components[d.ActiveComponent].Update(key) {
+				if d.ActiveComponent < len(d.Components)-1 {
+					d.updateActive(d.ActiveComponent + 1)
 				} else {
 					return true
 				}
@@ -65,17 +84,15 @@ func (p *DivComponent) Update(key string) bool {
 	return false
 }
 
-func (p *DivComponent) updateActive(newIndex int) {
-	if newIndex >= 0 && newIndex < len(p.Components) && len(p.Components) > 0 {
-		p.Components[p.ActiveComponent].GetComponentData().IsActive = false
-		p.ActiveComponent = newIndex
-		p.Components[p.ActiveComponent].GetComponentData().IsActive = p.Data.IsActive
-		p.Components[p.ActiveComponent].Update("")
+func (d *DivComponent) updateActive(newIndex int) {
+	if newIndex >= 0 && newIndex < len(d.Components) && len(d.Components) > 0 {
+		d.ActiveComponent = newIndex
 	}
 }
 
 func Div(components ...osui.Component) *DivComponent {
 	return &DivComponent{
 		Components: components,
+		Style:      osui.SetDefaults(&DivStyle{}).(*DivStyle),
 	}
 }

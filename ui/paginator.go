@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/orus-dev/osui"
-	"github.com/orus-dev/osui/styles"
+	"github.com/orus-dev/osui/colors"
 )
 
 type PaginatorStyle struct {
@@ -26,27 +26,27 @@ func (p *PaginatorComponent) GetComponentData() *osui.ComponentData {
 func (p PaginatorComponent) Render() string {
 	pgs := strings.Repeat(" ", p.Data.Width/2)
 	for page, c := range p.Components {
+		data := c.GetComponentData()
 		if page == p.ActiveComponent {
-			pgs += p.Style.Active + "•" + styles.Reset
+			data.IsActive = true
+			pgs += p.Style.Active + "•" + colors.Reset
 		} else {
-			pgs += styles.Reset + "•"
+			pgs += colors.Reset + "•"
+			data.IsActive = false
 		}
-		d := c.GetComponentData()
-		if d.Screen == nil {
-			d.Screen = p.Data.Screen
+		if data.Screen == nil {
+			data.Screen = p.Data.Screen
 		}
-		d.Height = p.Data.Height - 1
-		d.Width = p.Data.Width
+		data.Height = p.Data.Height - 1
+		data.Width = p.Data.Width
 	}
 	frame := osui.NewFrame(p.Data.Width, p.Data.Height-3)
 	osui.RenderOnFrame(p.Components[p.ActiveComponent], &frame)
-	return fmt.Sprintf("%s\n%s", pgs, styles.Reset+strings.Join(frame, "\n"))
+	return fmt.Sprintf("%s\n%s", pgs, colors.Reset+strings.Join(frame, "\n"))
 }
 
 func (p *PaginatorComponent) Update(key string) bool {
 	switch key {
-	case "":
-		p.updateActive(p.ActiveComponent)
 	case "\x1b[Z":
 		if p.ActiveComponent > 0 {
 			p.updateActive(p.ActiveComponent - 1)
@@ -79,10 +79,7 @@ func (p *PaginatorComponent) Update(key string) bool {
 
 func (p *PaginatorComponent) updateActive(newIndex int) {
 	if newIndex >= 0 && newIndex < len(p.Components) && len(p.Components) > 0 {
-		p.Components[p.ActiveComponent].GetComponentData().IsActive = false
 		p.ActiveComponent = newIndex
-		p.Components[p.ActiveComponent].GetComponentData().IsActive = p.Data.IsActive
-		p.Components[p.ActiveComponent].Update("")
 	}
 }
 

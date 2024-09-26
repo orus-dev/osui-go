@@ -9,24 +9,35 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/orus-dev/osui/colors"
 	"golang.org/x/term"
 )
 
 func renderLine(frameLine, line string, x int) string {
-	result := ""
-	if x >= len(frameLine) {
-		return result
+	result := []rune(frameLine) // Convert frameLine to a slice of runes for mutability
+	visibleCount := 0           // Track visible characters in frameLine
+
+	for _, c := range line {
+		// Skip over non-visible characters when counting the frameLine length
+		for visibleCount < len(result) {
+			if result[visibleCount] == '\t' || result[visibleCount] == '\b' {
+				visibleCount++ // Skip these characters without counting them
+			} else {
+				break
+			}
+		}
+
+		// If visibleCount exceeds the length of frameLine, stop
+		if x+visibleCount >= len(result) {
+			break
+		}
+
+		// Overlay the character from the line onto frameLine at the correct position
+		result[x+visibleCount] = c
+		visibleCount++ // Increment visible character count
 	}
 
-	lChars := []rune(line)
-	for i, c := range frameLine {
-		if i >= x && len(lChars) > i-x {
-			result += string(lChars[i-x])
-		} else {
-			result += string(c)
-		}
-	}
-	return result
+	return string(result) // Convert the result back to a string
 }
 
 func RenderOnFrame(c Component, frame *[]string) {
@@ -43,7 +54,7 @@ func RenderOnFrame(c Component, frame *[]string) {
 }
 
 func CompressString(input, repl string) (string, []string) {
-	pattern := `\x1b\[([0-9;]*)m`
+	pattern := `\x1b\[([0-9;]*)[a-zA-Z]`
 	re := regexp.MustCompile(pattern)
 	matches := re.FindAllString(input, -1)
 	return re.ReplaceAllString(input, repl), matches
@@ -99,11 +110,11 @@ func Clear() {
 func SetDefaults(p interface{}) interface{} {
 	v := reflect.ValueOf(p)
 	if v.Kind() != reflect.Ptr {
-		panic("setDefaults: expected a pointer to a struct")
+		panic("SetDefaults: expected a pointer to a struct")
 	}
 	val := v.Elem()
 	if val.Kind() != reflect.Struct {
-		panic("setDefaults: expected a pointer to a struct")
+		panic("SetDefaults: expected a pointer to a struct")
 	}
 	typ := val.Type()
 	for i := 0; i < val.NumField(); i++ {
@@ -116,6 +127,32 @@ func SetDefaults(p interface{}) interface{} {
 		}
 	}
 	return p
+}
+
+func UseStyle(p interface{}) {
+	v := reflect.ValueOf(p)
+	if v.Kind() != reflect.Ptr {
+		panic("SetStyle: expected a pointer to a struct")
+	}
+	val := v.Elem()
+	if val.Kind() != reflect.Struct {
+		panic("SetStyle: expected a pointer to a struct")
+	}
+	typ := val.Type()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		structField := typ.Field(i)
+		if styleType, ok := structField.Tag.Lookup("type"); ok {
+			if field.Kind() == reflect.String {
+				if styleType == "bg" || styleType == "background" {
+					field.SetString(colors.AsBg(field.String()))
+				} else {
+					field.SetString(colors.AsFg(field.String()))
+				}
+			}
+		}
+	}
+
 }
 
 func ShowCursor() {
@@ -138,6 +175,19 @@ func LogicValueInt(b bool, _if, _else int) int {
 		return _if
 	}
 	return _else
+}
+
+func DebugRender(c Component) {
+	s := NewScreen(c)
+	s.CustomRender = func() {
+
+	}
+	// data := c.GetComponentData()
+	fmt.Println(colors.Bold + "---OBJ RENDER---" + colors.Reset)
+	for _, line := range strings.Split(c.Render(), "\n") {
+		fmt.Printf("%#v\n", line)
+	}
+	s.Run()
 }
 
 type Key_ = string
