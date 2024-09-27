@@ -49,15 +49,15 @@ func renderLine(frameLine, line_ string, x int) string {
 
 	i := 0
 	v := 0
-	for _, c := range result {
-		if i >= x && v < len(line) {
+	for j, c := range result {
+		if i+j >= x && v < len(line) {
 			if c != '\b' && line[v] == '\t' {
 				result = append(result, ' ')
 			}
-			result[i] = line[v]
+			result[i+j] = line[v]
 			v++
 		}
-		if c != '\b' {
+		if c == '\b' {
 			i++
 		}
 	}
