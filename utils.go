@@ -13,19 +13,53 @@ import (
 	"golang.org/x/term"
 )
 
-func renderLine(frameLine, line string, x int) string {
+// NOTE: for now keep this code in case of needing it later
+
+// func renderLine(frameLine, line string, x int) string {
+// 	result := []rune(frameLine)
+// 	lineRunes := []rune(line)
+// 	x += strings.Count(string(result[:(x+1)]), "\t") + strings.Count(string(result[:(x+1)]), "\b")
+
+// 	for range strings.Count(line, "\t") + strings.Count(line, "\b") {
+// 		result = append(result, ' ')
+// 	}
+
+// 	frameLen := len(result)
+
+// 	for i := 0; i < len(lineRunes) && x+i < frameLen; i++ {
+// 		result[x+i] = lineRunes[i]
+// 	}
+
+// 	return string(result)
+// }
+
+// lineRunes := []rune(line)
+// x += strings.Count(string(frameLine[:(x+1)]), "\b")
+// result = append(result, []rune(strings.Repeat(" ", strings.Count(line, "\t")))...)
+// frameLen := len(result)
+// d := strings.Count(frameLine, "\b") - strings.Count(string(result), "\b")
+// for i := 0; i < len(lineRunes) && x+i < frameLen; i++ {
+// 	result[x+i] = lineRunes[i]
+// }
+// NOTE: for now keep this code in case of needing it later
+
+func renderLine(frameLine, line_ string, x int) string {
 	result := []rune(frameLine)
-	lineRunes := []rune(line)
-	x += strings.Count(string(result[:(x+1)]), "\t") + strings.Count(string(result[:(x+1)]), "\b")
+	line := []rune(line_)
 
-	for range strings.Count(line, "\t") + strings.Count(line, "\b") {
-		result = append(result, ' ')
-	}
-
-	frameLen := len(result)
-
-	for i := 0; i < len(lineRunes) && x+i < frameLen; i++ {
-		result[x+i] = lineRunes[i]
+	i := 0
+	v := 0
+	for _, c := range result {
+		if i >= x && v < len(line) {
+			if c != '\b' && line[v] == '\t' {
+				result = append(result, ' ')
+			}
+			result[i] = line[v]
+			v++
+		}
+		if c != '\b' {
+			i++
+		}
 	}
 
 	return string(result)
