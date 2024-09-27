@@ -46,7 +46,7 @@ func (s InputBoxComponent) Render() string {
 		" %s\n%s│%s%s\n %s",
 		colors.Reset+s.Style.Outline+strings.Repeat("_", int(s.max_size))+colors.Reset,
 		colors.Reset+s.Style.Outline,
-		colors.Combine(s.Style.Foreground, s.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Style.Cursor+"█"+colors.Reset+colors.Reset, colors.Reset+s.Style.Outline+"|"+colors.Reset),
+		colors.Combine(s.Style.Foreground, s.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Style.Cursor+"█"+colors.Reset, s.Style.Outline+"|"+colors.Reset),
 		colors.Reset+s.Data.DefaultColor,
 		colors.Reset+s.Style.Outline+strings.Repeat("‾", int(s.max_size))+colors.Reset+s.Data.DefaultColor,
 	)
