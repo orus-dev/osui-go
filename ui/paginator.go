@@ -6,6 +6,7 @@ import (
 
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
+	"github.com/orus-dev/osui/isKey"
 )
 
 type PaginatorStyle struct {
@@ -55,23 +56,22 @@ func (p *PaginatorComponent) Render() string {
 }
 
 func (p *PaginatorComponent) Update(key string) bool {
-	switch key {
-	case "\x1b[Z":
+	if key == "\x1b[Z" {
 		if p.ActiveComponent > 0 {
 			p.updateActive(p.ActiveComponent - 1)
 		} else {
 			p.updateActive(len(p.Components) - 1)
 		}
-	case osui.Key.Tab:
+	} else if isKey.Tab(key) {
 		if p.ActiveComponent < len(p.Components)-1 {
 			p.updateActive(p.ActiveComponent + 1)
 		} else {
 			p.updateActive(0)
 		}
-	case osui.Key.Escape:
+	} else if isKey.Escape(key) {
 		fmt.Print("\n\n")
 		return true
-	default:
+	} else {
 		if len(p.Components) > 0 {
 			p.Components[p.ActiveComponent].GetComponentData().IsActive = p.Data.IsActive
 			if p.Components[p.ActiveComponent].Update(key) {

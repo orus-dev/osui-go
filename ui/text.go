@@ -2,7 +2,6 @@ package ui
 
 import (
 	"github.com/orus-dev/osui"
-	"github.com/orus-dev/osui/colors"
 )
 
 type TextComponent struct {
@@ -19,7 +18,7 @@ func (t *TextComponent) GetComponentData() *osui.ComponentData {
 }
 
 func (t TextComponent) Render() string {
-	return colors.Reset + t.Data.DefaultColor + t.Text
+	return t.Text
 }
 
 func (t *TextComponent) SetStyle(interface{}) {}

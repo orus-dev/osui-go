@@ -6,6 +6,7 @@ import (
 
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
+	"github.com/orus-dev/osui/isKey"
 )
 
 type InputBoxStyle struct {
@@ -19,6 +20,7 @@ type InputBoxComponent struct {
 	Data      osui.ComponentData
 	Style     *InputBoxStyle
 	max_size  uint
+	cursor    uint
 	InputData string
 }
 
@@ -30,7 +32,7 @@ func (s InputBoxComponent) Render() string {
 	osui.UseStyle(s.Style)
 	if s.max_size > uint(len(s.InputData)) {
 		return fmt.Sprintf(
-			" %s\n%s|%s%s|%s\n %s",
+			" %s\n%s│%s%s│%s\n %s",
 			colors.Reset+s.Style.Outline+strings.Repeat("_", int(s.max_size))+colors.Reset,
 			colors.Reset+s.Style.Outline,
 			colors.Combine(s.Style.Foreground, s.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Style.Cursor+"█"+colors.Combine(s.Style.Foreground, s.Style.Background), ""),
@@ -41,10 +43,10 @@ func (s InputBoxComponent) Render() string {
 	}
 
 	return fmt.Sprintf(
-		" %s\n%s|%s%s\n %s",
+		" %s\n%s│%s%s\n %s",
 		colors.Reset+s.Style.Outline+strings.Repeat("_", int(s.max_size))+colors.Reset,
 		colors.Reset+s.Style.Outline,
-		colors.Combine(s.Style.Foreground, s.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Style.Cursor+"█", "")+colors.Reset+colors.Reset,
+		colors.Combine(s.Style.Foreground, s.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Style.Cursor+"█"+colors.Reset+colors.Reset, colors.Reset+s.Style.Outline+"|"+colors.Reset),
 		colors.Reset+s.Data.DefaultColor,
 		colors.Reset+s.Style.Outline+strings.Repeat("‾", int(s.max_size))+colors.Reset+s.Data.DefaultColor,
 	)
@@ -67,15 +69,21 @@ func (s *InputBoxComponent) Read() error {
 }
 
 func (s *InputBoxComponent) Update(key string) bool {
-	switch key {
-	case osui.Key.Enter:
+	if isKey.Enter(key) {
 		return true
-	case osui.Key.Backspace:
+	} else if isKey.Backspace(key) {
 		if len(s.InputData) > 0 {
 			s.InputData = s.InputData[:len(s.InputData)-1]
 		}
-
-	default:
+	} else if isKey.Left(key) {
+		if s.cursor > 0 {
+			s.cursor--
+		}
+	} else if isKey.Right(key) {
+		if s.cursor < s.max_size {
+			s.cursor++
+		}
+	} else {
 		if len(key) == 1 {
 			if int(s.max_size) > len(s.InputData) {
 				s.InputData += key

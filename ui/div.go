@@ -5,6 +5,7 @@ import (
 
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
+	"github.com/orus-dev/osui/isKey"
 )
 
 type DivStyle struct {
@@ -39,12 +40,12 @@ func (d *DivComponent) Render() string {
 		if data.Height == 0 {
 			data.Height = d.Data.Height
 		}
-		data.DefaultColor = colors.Combine(d.Style.Foreground, d.Style.Background)
+		data.DefaultColor = colors.Combine(d.Style.Background, d.Style.Foreground)
 		data.Screen = d.Data.Screen
 		osui.RenderOnFrame(c, &frame)
 	}
 	for i, f := range frame {
-		frame[i] = colors.Reset + d.Data.DefaultColor + colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset + d.Data.DefaultColor
+		frame[i] = colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset
 	}
 	return strings.Join(frame, "\n")
 }
@@ -63,22 +64,19 @@ func (d *DivComponent) Run() {
 }
 
 func (d *DivComponent) Update(key string) bool {
-	switch key {
-
-	case osui.Key.Up:
+	if isKey.Up(key) {
 		d.updateActive(d.ActiveComponent - 1)
-	case osui.Key.Down:
+	} else if isKey.Down(key) {
 		d.updateActive(d.ActiveComponent + 1)
-	default:
+	} else {
 		if len(d.Components) > 0 {
 			d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
 			if d.Components[d.ActiveComponent].Update(key) {
-				return true
-				// if d.ActiveComponent < len(d.Components)-1 {
-				// 	d.updateActive(d.ActiveComponent + 1)
-				// } else {
-				// 	return true
-				// }
+				if d.ActiveComponent < len(d.Components)-1 {
+					d.updateActive(d.ActiveComponent + 1)
+				} else {
+					return true
+				}
 			}
 		}
 	}

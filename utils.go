@@ -16,25 +16,15 @@ import (
 func renderLine(frameLine, line string, x int) string {
 	result := []rune(frameLine)
 	lineRunes := []rune(line)
-	frameLen := len(result)
-	lineLen := len(lineRunes)
+	x += strings.Count(string(result[:(x+1)]), "\t") + strings.Count(string(result[:(x+1)]), "\b")
 
-	cl := 0
-	for i, r := range result {
-		if r == '\b' || r == '\t' {
-			cl++
-		}
-		if i > x+1 {
-			break
-		}
+	for range strings.Count(line, "\t") + strings.Count(line, "\b") {
+		result = append(result, ' ')
 	}
-	x += cl
 
-	for i := 0; i < lineLen && (x+i)-cl < frameLen; i++ {
-		if x+i > frameLen {
-			result = append(result, lineRunes[i])
-			continue
-		}
+	frameLen := len(result)
+
+	for i := 0; i < len(lineRunes) && x+i < frameLen; i++ {
 		result[x+i] = lineRunes[i]
 	}
 
@@ -49,7 +39,6 @@ func RenderOnFrame(c Component, frame *[]string) {
 			f, fa := CompressString(fo, "\b")
 			line, la := CompressString(lo, "\t")
 			r := renderLine(f, line, int(componentData.X))
-			// (*frame)[int(componentData.Y)+i] = fmt.Sprintf("%#v\n", DecompressString(DecompressString(r, la, "\t"), fa, "\b"))
 			(*frame)[int(componentData.Y)+i] = DecompressString(DecompressString(r, la, "\t"), fa, "\b")
 		}
 	}
@@ -177,43 +166,6 @@ func LogicValueInt(b bool, _if, _else int) int {
 		return _if
 	}
 	return _else
-}
-
-func DebugRender(c Component) {
-	s := NewScreen(c)
-	s.CustomRender = func() {
-
-	}
-	// data := c.GetComponentData()
-	fmt.Println(colors.Bold + "---OBJ RENDER---" + colors.Reset)
-	for _, line := range strings.Split(c.Render(), "\n") {
-		fmt.Printf("%#v\n", line)
-	}
-	s.Run()
-}
-
-type Key_ = string
-
-type key struct {
-	Enter     Key_
-	Tab       Key_
-	Backspace Key_
-	Escape    Key_
-	Up        Key_
-	Down      Key_
-	Right     Key_
-	Left      Key_
-}
-
-var Key = key{
-	Enter:     "\r",
-	Tab:       "\t",
-	Backspace: "\x7f",
-	Escape:    "\x1b",
-	Up:        "\x1b[A",
-	Down:      "\x1b[B",
-	Right:     "\x1b[C",
-	Left:      "\x1b[D",
 }
 
 func GetTerminalSize() (int, int) {
