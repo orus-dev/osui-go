@@ -50,19 +50,6 @@ func (d *DivComponent) Render() string {
 	return strings.Join(frame, "\n")
 }
 
-func (d *DivComponent) Run() {
-	for _, c := range d.Components {
-		data := c.GetComponentData()
-		data.Screen = d.Data.Screen
-	}
-	for {
-		key, _ := osui.ReadKey()
-		if d.Update(key) {
-			return
-		}
-	}
-}
-
 func (d *DivComponent) Update(key string) bool {
 	if isKey.Up(key) {
 		d.updateActive(d.ActiveComponent - 1)
@@ -94,8 +81,8 @@ func (d *DivComponent) updateActive(newIndex int) {
 }
 
 func Div(components ...osui.Component) *DivComponent {
-	return &DivComponent{
+	return osui.NewComponent(&DivComponent{
 		Components: components,
 		Style:      osui.SetDefaults(&DivStyle{}).(*DivStyle),
-	}
+	}).(*DivComponent)
 }

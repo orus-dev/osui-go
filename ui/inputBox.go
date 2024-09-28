@@ -52,22 +52,6 @@ func (s InputBoxComponent) Render() string {
 	)
 }
 
-func (s *InputBoxComponent) Read() error {
-	for {
-		key, err := osui.ReadKey()
-		if err != nil {
-			fmt.Print("\n\n")
-			fmt.Println(err)
-			break
-		}
-		if s.Update(key) {
-			fmt.Print("\n\n")
-			return nil
-		}
-	}
-	return nil
-}
-
 func (s *InputBoxComponent) Update(key string) bool {
 	if isKey.Enter(key) {
 		return true
@@ -98,5 +82,5 @@ func (d *InputBoxComponent) SetStyle(c interface{}) {
 }
 
 func InputBox(max_size uint) *InputBoxComponent {
-	return &InputBoxComponent{max_size: max_size, Style: osui.SetDefaults(&InputBoxStyle{}).(*InputBoxStyle)}
+	return osui.NewComponent(&InputBoxComponent{max_size: max_size, Style: osui.SetDefaults(&InputBoxStyle{}).(*InputBoxStyle)}).(*InputBoxComponent)
 }

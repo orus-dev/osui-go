@@ -1,7 +1,7 @@
 package isKey
 
 func Enter(s string) bool {
-	return s == "\r"
+	return s == "\r" || s == "\n"
 }
 
 func Tab(s string) bool {
