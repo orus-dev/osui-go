@@ -18,6 +18,14 @@ func centerText(text string, width int) string {
 	return fmt.Sprintf("%s%s%s", leftPadding, text, rightPadding)
 }
 
+func fnLogicValue(f func(*ButtonComponent) bool) func(*ButtonComponent) bool {
+	if f == nil {
+		return func(*ButtonComponent) bool { return false }
+	} else {
+		return f
+	}
+}
+
 func WithPosition(x, y int, c osui.Component) osui.Component {
 	data := c.GetComponentData()
 	data.X = x
@@ -35,12 +43,4 @@ func WithSize(width, height int, c osui.Component) osui.Component {
 	data.Width = width
 	data.Height = height
 	return c
-}
-
-func fnLogicValue(f func(*ButtonComponent) bool) func(*ButtonComponent) bool {
-	if f == nil {
-		return func(*ButtonComponent) bool { return false }
-	} else {
-		return f
-	}
 }

@@ -97,8 +97,8 @@ func (p *PaginatorComponent) SetStyle(c interface{}) {
 }
 
 func Paginator(pages ...osui.Component) *PaginatorComponent {
-	return osui.NewComponent(&PaginatorComponent{
+	return &PaginatorComponent{
 		Components: pages,
 		Style:      osui.SetDefaults(&PaginatorStyle{}).(*PaginatorStyle),
-	}).(*PaginatorComponent)
+	}
 }

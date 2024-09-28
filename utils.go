@@ -155,6 +155,7 @@ func SetDefaults(p interface{}) interface{} {
 }
 
 func UseStyle(p interface{}) {
+	SetDefaults(p)
 	v := reflect.ValueOf(p)
 	if v.Kind() != reflect.Ptr {
 		panic("SetStyle: expected a pointer to a struct")

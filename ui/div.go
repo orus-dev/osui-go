@@ -9,8 +9,8 @@ import (
 )
 
 type DivStyle struct {
-	Background string `defaults:"" type:"bg"`
-	Foreground string `defaults:"" type:"fg"`
+	Background string `default:"" type:"bg"`
+	Foreground string `default:"" type:"fg"`
 }
 
 type DivComponent struct {
@@ -18,6 +18,7 @@ type DivComponent struct {
 	Style           *DivStyle
 	Components      []osui.Component
 	ActiveComponent int
+	onKey           func(*DivComponent, string) string
 }
 
 func (d *DivComponent) GetComponentData() *osui.ComponentData {
@@ -51,6 +52,30 @@ func (d *DivComponent) Render() string {
 }
 
 func (d *DivComponent) Update(key string) bool {
+	if d.onKey != nil {
+		o := d.onKey(d, key)
+		if o == "up" {
+			d.updateActive(d.ActiveComponent - 1)
+		} else if o == "down" {
+			d.updateActive(d.ActiveComponent + 1)
+		} else if o == "true" {
+			return true
+		} else if o == "false" {
+			return false
+		} else {
+			if len(d.Components) > 0 {
+				d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
+				if d.Components[d.ActiveComponent].Update(key) {
+					if d.ActiveComponent < len(d.Components)-1 {
+						d.updateActive(d.ActiveComponent + 1)
+					} else {
+						return true
+					}
+				}
+			}
+		}
+		return false
+	}
 	if isKey.Up(key) {
 		d.updateActive(d.ActiveComponent - 1)
 	} else if isKey.Down(key) {
@@ -80,9 +105,19 @@ func (d *DivComponent) updateActive(newIndex int) {
 	}
 }
 
+func (d *DivComponent) OnKey(f func(*DivComponent, string) string) *DivComponent {
+	d.onKey = f
+	return d
+}
+
+func (d *DivComponent) AddTo(c *DivComponent) *DivComponent {
+	*c = *d
+	return d
+}
+
 func Div(components ...osui.Component) *DivComponent {
-	return osui.NewComponent(&DivComponent{
+	return &DivComponent{
 		Components: components,
 		Style:      osui.SetDefaults(&DivStyle{}).(*DivStyle),
-	}).(*DivComponent)
+	}
 }

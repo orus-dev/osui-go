@@ -99,23 +99,21 @@ type BtnParams struct {
 func Button(text string, p ...BtnParams) *ButtonComponent {
 	if len(p) > 0 {
 		param := p[0]
-		return osui.NewComponent(
-			&ButtonComponent{Text: text, Style: osui.SetDefaults(&param.Style).(*ButtonStyle),
-				Data: osui.ComponentData{
-					Width:  osui.LogicValueInt(param.Width == 0, 20, param.Width),
-					Height: 1,
-				},
-				OnClick: fnLogicValue(param.OnClick),
-			}).(*ButtonComponent)
-
-	}
-	return osui.NewComponent(
-		&ButtonComponent{Text: text,
-			Style: osui.SetDefaults(&ButtonStyle{}).(*ButtonStyle),
+		return &ButtonComponent{Text: text, Style: osui.SetDefaults(&param.Style).(*ButtonStyle),
 			Data: osui.ComponentData{
-				Width:  20,
+				Width:  osui.LogicValueInt(param.Width == 0, 20, param.Width),
 				Height: 1,
 			},
-			OnClick: func(bc *ButtonComponent) bool { return false },
-		}).(*ButtonComponent)
+			OnClick: fnLogicValue(param.OnClick),
+		}
+
+	}
+	return &ButtonComponent{Text: text,
+		Style: osui.SetDefaults(&ButtonStyle{}).(*ButtonStyle),
+		Data: osui.ComponentData{
+			Width:  20,
+			Height: 1,
+		},
+		OnClick: func(bc *ButtonComponent) bool { return false },
+	}
 }

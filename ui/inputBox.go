@@ -10,10 +10,10 @@ import (
 )
 
 type InputBoxStyle struct {
-	Background string `defaults:"" type:"bg"`
-	Foreground string `defaults:"" type:"fg"`
-	Outline    string `defaults:"" type:"fg"`
-	Cursor     string `defaults:"" type:"fg"`
+	Background string `default:"" type:"bg"`
+	Foreground string `default:"" type:"fg"`
+	Outline    string `default:"" type:"fg"`
+	Cursor     string `default:"" type:"fg"`
 }
 
 type InputBoxComponent struct {
@@ -82,5 +82,5 @@ func (d *InputBoxComponent) SetStyle(c interface{}) {
 }
 
 func InputBox(max_size uint) *InputBoxComponent {
-	return osui.NewComponent(&InputBoxComponent{max_size: max_size, Style: osui.SetDefaults(&InputBoxStyle{}).(*InputBoxStyle)}).(*InputBoxComponent)
+	return &InputBoxComponent{max_size: max_size, Style: osui.SetDefaults(&InputBoxStyle{}).(*InputBoxStyle)}
 }

@@ -11,8 +11,12 @@ import (
 )
 
 func main() {
-	components := osui.NewRender()
-	components.Add(ui.Text("Hello, World!"))
-	components.Render()
+
+	app := ui.Div(
+		ui.Text("Hello, World!")
+	)
+
+	screen := osui.NewScreen(app)
+	screen.Run()
 }
 ```

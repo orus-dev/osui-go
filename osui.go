@@ -15,13 +15,6 @@ type ComponentData struct {
 	DefaultColor string
 	IsActive     bool
 	Screen       *Screen
-	Update       func(string) bool
-}
-
-func NewComponent(c Component) Component {
-	data := c.GetComponentData()
-	data.Update = func(s string) bool { return c.Update(s) }
-	return c
 }
 
 type Component interface {
@@ -71,7 +64,7 @@ func (s *Screen) Run() {
 	for {
 		s.Render()
 		k, _ := ReadKey()
-		if data.Update(k) {
+		if s.component.Update(k) {
 			ShowCursor()
 			return
 		}

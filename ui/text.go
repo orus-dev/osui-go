@@ -24,5 +24,5 @@ func (t TextComponent) Render() string {
 func (t *TextComponent) SetStyle(interface{}) {}
 
 func Text(text string) *TextComponent {
-	return osui.NewComponent(&TextComponent{Text: text}).(*TextComponent)
+	return &TextComponent{Text: text}
 }

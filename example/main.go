@@ -13,6 +13,7 @@ func main() {
 
 func App() *PaginatorComponent {
 	w, h := osui.GetTerminalSize()
+	text := Text("")
 	return Paginator(
 		// Page 1
 		Div(
@@ -40,5 +41,20 @@ func App() *PaginatorComponent {
 			WithPosition(0, 0, Text("This is a Button. To click it press Enter. "+colors.Red+colors.Bold+"NOTE: This Button is inside a div")),
 			WithPosition((w-20)/2, (h-3)/2, Button("This is a button", BtnParams{OnClick: func(bc *ButtonComponent) bool { return false }})),
 		),
+
+		// Page 5
+		Div(
+			WithPosition(0, 2, Menu("Item 1", "Item 2", "Item 3").OnSelected(func(m *MenuComponent, b bool) {
+				if b {
+					text.Text = m.Items[m.SelectedItem]
+				}
+			})),
+			WithPosition(0, 6, Menu("Item A", "Item B", "Item C").OnSelected(func(m *MenuComponent, b bool) {
+				if b {
+					text.Text = m.Items[m.SelectedItem]
+				}
+			})),
+			text,
+		).OnKey(func(d *DivComponent, k string) string { return "" }),
 	)
 }
