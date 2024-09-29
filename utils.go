@@ -174,6 +174,8 @@ func LogicValueInt(b bool, _if, _else int) int {
 	return _else
 }
 
+
+// Get the terminal size
 func GetTerminalSize() (int, int) {
 	return consolesize.GetConsoleSize()
 }
