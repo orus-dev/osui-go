@@ -1,6 +1,11 @@
-<h1 style="text-align:center;"><img src="assets/osui.png" width="170px"></img></h1>
-<h1 style="text-align:center;"></img>A Component-based TUI library written in go</h1>
-<p style="text-align:center;"><img src="assets/osui.gif"></img></p>
+<div style="text-align: center;">
+    <img src="assets/osui.png" width="170px" />
+    <h1>A Component-based TUI library written in Go</h1>
+    <img src="assets/osui.gif" />
+</div>
+
+
+
 
 
 # Hello World
