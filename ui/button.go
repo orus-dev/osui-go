@@ -10,6 +10,13 @@ import (
 	"github.com/orus-dev/osui/isKey"
 )
 
+type BtnParams struct {
+	Style   ButtonStyle
+	Toggle  bool
+	OnClick func(*ButtonComponent) bool
+	Width   int
+}
+
 type ButtonStyle struct {
 	Background string `default:"" type:"bg"`
 	Foreground string `default:"" type:"fg"`
@@ -25,12 +32,12 @@ type ButtonStyle struct {
 }
 
 type ButtonComponent struct {
-	Data    osui.ComponentData
-	Style   *ButtonStyle
-	Text    string
-	Toggle  bool
-	Clicked bool
-	OnClick func(*ButtonComponent) bool
+	Data     osui.ComponentData
+	Style    *ButtonStyle
+	Text     string
+	Toggle   bool
+	Clicked  bool
+	on_click func(*ButtonComponent) bool
 }
 
 func (b *ButtonComponent) Render() string {
@@ -67,7 +74,7 @@ func (b *ButtonComponent) Render() string {
 
 func (b *ButtonComponent) Update(key string) bool {
 	if isKey.Enter(key) {
-		if !b.OnClick(b) {
+		if !b.on_click(b) {
 			if b.Toggle {
 				b.Clicked = !b.Clicked
 				return false
@@ -85,35 +92,22 @@ func (b *ButtonComponent) GetComponentData() *osui.ComponentData {
 	return &b.Data
 }
 
-func (b *ButtonComponent) SetStyle(style interface{}) {
-	b.Style = osui.SetDefaults(style).(*ButtonStyle)
-}
-
-type BtnParams struct {
-	Style   ButtonStyle
-	Toggle  bool
-	OnClick func(*ButtonComponent) bool
-	Width   int
-}
-
-func Button(text string, p ...BtnParams) *ButtonComponent {
-	if len(p) > 0 {
-		param := p[0]
-		return &ButtonComponent{Text: text, Style: osui.SetDefaults(&param.Style).(*ButtonStyle),
-			Data: osui.ComponentData{
-				Width:  osui.LogicValueInt(param.Width == 0, 20, param.Width),
-				Height: 1,
-			},
-			OnClick: fnLogicValue(param.OnClick),
-		}
-
+func (b *ButtonComponent) Params(param BtnParams) *ButtonComponent {
+	b.Style = osui.SetDefaults(&param.Style).(*ButtonStyle)
+	if param.OnClick != nil {
+		b.on_click = param.OnClick
 	}
+	b.Data.Width = osui.LogicValueInt(param.Width == 0, 20, param.Width)
+	return b
+}
+
+func Button(text string) *ButtonComponent {
 	return &ButtonComponent{Text: text,
 		Style: osui.SetDefaults(&ButtonStyle{}).(*ButtonStyle),
 		Data: osui.ComponentData{
 			Width:  20,
 			Height: 1,
 		},
-		OnClick: func(bc *ButtonComponent) bool { return false },
+		on_click: func(bc *ButtonComponent) bool { return false },
 	}
 }

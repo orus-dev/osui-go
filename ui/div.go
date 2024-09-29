@@ -8,6 +8,12 @@ import (
 	"github.com/orus-dev/osui/isKey"
 )
 
+type DivParams struct {
+	Style  DivStyle
+	Width  int
+	Height int
+}
+
 type DivStyle struct {
 	Background string `default:"" type:"bg"`
 	Foreground string `default:"" type:"fg"`
@@ -82,19 +88,16 @@ func (d *DivComponent) Update(key string) bool {
 	return false
 }
 
-func (d *DivComponent) SetStyle(c interface{}) {
-	d.Style = osui.SetDefaults(c.(*DivStyle)).(*DivStyle)
+func (b *DivComponent) Params(param DivParams) *DivComponent {
+	b.Style = osui.SetDefaults(&param.Style).(*DivStyle)
+	b.Data.Width = osui.LogicValueInt(param.Width == 0, 20, param.Width)
+	return b
 }
 
 func (d *DivComponent) updateActive(newIndex int) {
 	if newIndex >= 0 && newIndex < len(d.Components) && len(d.Components) > 0 {
 		d.ActiveComponent = newIndex
 	}
-}
-
-func (d *DivComponent) AddTo(c *DivComponent) *DivComponent {
-	*c = *d
-	return d
 }
 
 func Div(components ...osui.Component) *DivComponent {

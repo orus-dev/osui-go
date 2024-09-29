@@ -9,6 +9,12 @@ import (
 	"github.com/orus-dev/osui/isKey"
 )
 
+type InputBoxParams struct {
+	Style  DivStyle
+	Width  int
+	Height int
+}
+
 type InputBoxStyle struct {
 	Background string `default:"" type:"bg"`
 	Foreground string `default:"" type:"fg"`
@@ -77,8 +83,11 @@ func (s *InputBoxComponent) Update(key string) bool {
 	return false
 }
 
-func (d *InputBoxComponent) SetStyle(c interface{}) {
-	d.Style = osui.SetDefaults(c.(*InputBoxStyle)).(*InputBoxStyle)
+func (b *InputBoxComponent) Params(p interface{}) *InputBoxComponent {
+	param := p.(InputBoxParams)
+	b.Style = osui.SetDefaults(&param.Style).(*InputBoxStyle)
+	b.Data.Width = osui.LogicValueInt(param.Width == 0, 20, param.Width)
+	return b
 }
 
 func InputBox(max_size uint) *InputBoxComponent {

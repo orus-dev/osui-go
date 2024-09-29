@@ -174,7 +174,7 @@ func LogicValueInt(b bool, _if, _else int) int {
 }
 
 func GetTerminalSize() (int, int) {
-	w, h, err := term.GetSize(0)
+	w, h, err := term.GetSize(int(os.Stdin.Fd()))
 	if err != nil {
 		panic(err)
 	}

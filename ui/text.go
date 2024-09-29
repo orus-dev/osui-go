@@ -21,8 +21,6 @@ func (t TextComponent) Render() string {
 	return t.Text
 }
 
-func (t *TextComponent) SetStyle(interface{}) {}
-
 func Text(text string) *TextComponent {
 	return &TextComponent{Text: text}
 }

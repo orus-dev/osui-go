@@ -8,6 +8,11 @@ import (
 	"github.com/orus-dev/osui/isKey"
 )
 
+type MenuParams struct {
+	Style      MenuStyle
+	OnSelected func(*MenuComponent, bool)
+}
+
 type MenuStyle struct {
 	Fg             string `default:"" type:"fg"`
 	Bg             string `default:"" type:"bg"`
@@ -74,13 +79,9 @@ func (m *MenuComponent) Update(key string) bool {
 	return false
 }
 
-func (m *MenuComponent) SetStyle(c interface{}) {
-	m.Style = osui.SetDefaults(c.(*MenuStyle)).(*MenuStyle)
-}
-
-func (m *MenuComponent) OnSelected(f func(*MenuComponent, bool)) *MenuComponent {
-	m.onSelected = f
-	return m
+func (b *MenuComponent) Params(param MenuParams) *MenuComponent {
+	b.Style = osui.SetDefaults(&param.Style).(*MenuStyle)
+	return b
 }
 
 func Menu(items ...string) *MenuComponent {

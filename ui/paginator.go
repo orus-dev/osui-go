@@ -9,6 +9,12 @@ import (
 	"github.com/orus-dev/osui/isKey"
 )
 
+type PaginatorParams struct {
+	Style  DivStyle
+	Width  int
+	Height int
+}
+
 type PaginatorStyle struct {
 	Active   string `default:"\033[32m"`
 	Inactive string `default:""`
@@ -92,8 +98,10 @@ func (p *PaginatorComponent) updateActive(newIndex int) {
 	}
 }
 
-func (p *PaginatorComponent) SetStyle(c interface{}) {
-	p.Style = osui.SetDefaults(c.(*PaginatorStyle)).(*PaginatorStyle)
+func (b *PaginatorComponent) Params(p interface{}) *PaginatorComponent {
+	param := p.(PaginatorParams)
+	b.Style = osui.SetDefaults(&param.Style).(*PaginatorStyle)
+	return b
 }
 
 func Paginator(pages ...osui.Component) *PaginatorComponent {

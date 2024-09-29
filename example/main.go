@@ -25,9 +25,8 @@ func App() *PaginatorComponent {
 			WithPosition(0, 0, Text("This blue square is a div. A div stores multiple components into one")),
 			WithPosition((w-30)/2, (h-4)/2,
 				WithSize(30, 5,
-					WithStyle(&DivStyle{Outline: colors.Blue},
-						Div(WithPosition(4, 1, Button("Hello, World!", BtnParams{Width: 19}))),
-					))),
+					Div(WithPosition(4, 1, Button("Hello, World!").Params(BtnParams{Width: 19}))).Params(DivParams{Style: DivStyle{Outline: colors.Blue}}),
+				)),
 			WithPosition(0, h-2, Text(colors.Blue+"Navigate: Ctrl+(W/A/S/D)")),
 		),
 
@@ -41,14 +40,14 @@ func App() *PaginatorComponent {
 		// Page 4
 		Div(
 			WithPosition(0, 0, Text("This is a Button. To click it press Enter. "+colors.Red+colors.Bold+"NOTE: This Button is inside a div")),
-			WithPosition((w-20)/2, (h-3)/2, Button("This is a button", BtnParams{OnClick: func(bc *ButtonComponent) bool { return false }})),
+			WithPosition((w-20)/2, (h-3)/2, Button("This is a button")),
 			WithPosition(0, h-2, Text(colors.Blue+"Navigate: Ctrl+(W/A/S/D). Click Button: Enter")),
 		),
 
 		// Page 5
 		Div(
 			WithPosition(0, 0, Text("This is a Menu. It prompts you to select a item. "+colors.Red+colors.Bold+"NOTE: This Menu is inside a div")),
-			WithPosition(0, 2, Menu("Item 1", "Item 2", "Item 3", "Item 4", "Item 5").OnSelected(func(m *MenuComponent, b bool) {})),
+			WithPosition(0, 2, Menu("Item 1", "Item 2", "Item 3", "Item 4", "Item 5").Params(MenuParams{})),
 			WithPosition(0, h-2, Text(colors.Blue+"Navigate: Ctrl+(W/A/S/D). Navigate Menu: W/S. Select: Enter. Exit Menu: Q. ")),
 		),
 	)

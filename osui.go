@@ -21,7 +21,6 @@ type Component interface {
 	Render() string
 	GetComponentData() *ComponentData
 	Update(string) bool
-	SetStyle(interface{})
 }
 
 type Screen struct {

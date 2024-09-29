@@ -1,9 +1,9 @@
-# osui
-A Component-based TUI library written in go!
+<h1 style="text-align:center;"><img src="assets/osui.png" width="170px"></img></h1>
+<h1 style="text-align:center;"></img>A Component-based TUI library written in go</h1>
+<p style="text-align:center;"><img src="assets/osui.gif"></img></p>
 
-![OSUI](osui.gif)
 
-
+# Hello World
 ```go
 package main
 

@@ -24,8 +24,9 @@ func (h *HelloComponent) Update(key string) bool {
 	return false
 }
 
-func (h *HelloComponent) SetStyle(c interface{}) {
-	h.Style = osui.SetDefaults(c.(*HelloStyle)).(*HelloStyle)
+func (b *MenuComponent) Params(param MenuParams) *MenuComponent {
+	b.Style = osui.SetDefaults(&param.Style).(*MenuStyle)
+	return b
 }
 
 func Hello(name string) *HelloComponent {
