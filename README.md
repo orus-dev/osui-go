@@ -1,6 +1,8 @@
 # osui
 A Component-based TUI library written in go!
 
+![OSUI](osui.gif)
+
 
 ```go
 package main
@@ -11,12 +13,13 @@ import (
 )
 
 func main() {
+    app := ui.Div(
+        ui.Text("Hello, World!")
+    )
 
-	app := ui.Div(
-		ui.Text("Hello, World!")
-	)
-
-	screen := osui.NewScreen(app)
-	screen.Run()
+    screen := osui.NewScreen(app)
+    screen.Run()
 }
 ```
+
+# [Documentation](https://github.com/orus-dev/osui/wiki)
