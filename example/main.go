@@ -13,48 +13,43 @@ func main() {
 
 func App() *PaginatorComponent {
 	w, h := osui.GetTerminalSize()
-	text := Text("")
 	return Paginator(
 		// Page 1
 		Div(
-			Text("Welcome to the example! Press tab to go to the next page or press shift + tab to go to a previous page"),
+			Text("Welcome to the example! The blue text on the bottom show the keybindings"),
+			WithPosition(0, h-2, Text(colors.Blue+"Next Page: Tab. Previous Page: shift + tab")),
 		),
 
 		// Page 2
 		Div(
-			WithPosition(0, 0, Text("This blue square is a div. A div stores multiple components into one. To navigate to each of those components you can use arrow keys ↑↓")),
+			WithPosition(0, 0, Text("This blue square is a div. A div stores multiple components into one")),
 			WithPosition((w-30)/2, (h-4)/2,
-				WithSize(30, 4,
-					WithStyle(&DivStyle{Background: colors.Blue, Foreground: colors.Red},
-						Div(WithPosition(0, 0, Text("Hello, World!"))),
+				WithSize(30, 5,
+					WithStyle(&DivStyle{Outline: colors.Blue},
+						Div(WithPosition(4, 1, Button("Hello, World!", BtnParams{Width: 19}))),
 					))),
+			WithPosition(0, h-2, Text(colors.Blue+"Navigate: Ctrl+(W/A/S/D)")),
 		),
 
 		// Page 3
 		Div(
 			WithPosition(0, 0, Text("This is a InputBox. It takes user input just like a GUI. "+colors.Red+colors.Bold+"NOTE: This InputBox is inside a div")),
 			WithPosition((w-32)/2, (h-3)/2, InputBox(30)),
+			WithPosition(0, h-2, Text(colors.Blue+"Navigate: W/S. Select: Enter. Exit Menu: Q. ")),
 		),
 
 		// Page 4
 		Div(
 			WithPosition(0, 0, Text("This is a Button. To click it press Enter. "+colors.Red+colors.Bold+"NOTE: This Button is inside a div")),
 			WithPosition((w-20)/2, (h-3)/2, Button("This is a button", BtnParams{OnClick: func(bc *ButtonComponent) bool { return false }})),
+			WithPosition(0, h-2, Text(colors.Blue+"Navigate: Ctrl+(W/A/S/D). Click Button: Enter")),
 		),
 
 		// Page 5
 		Div(
-			WithPosition(0, 2, Menu("Item 1", "Item 2", "Item 3").OnSelected(func(m *MenuComponent, b bool) {
-				if b {
-					text.Text = m.Items[m.SelectedItem]
-				}
-			})),
-			WithPosition(0, 6, Menu("Item A", "Item B", "Item C").OnSelected(func(m *MenuComponent, b bool) {
-				if b {
-					text.Text = m.Items[m.SelectedItem]
-				}
-			})),
-			text,
-		).OnKey(func(d *DivComponent, k string) string { return "" }),
+			WithPosition(0, 0, Text("This is a Menu. It prompts you to select a item. "+colors.Red+colors.Bold+"NOTE: This Menu is inside a div")),
+			WithPosition(0, 2, Menu("Item 1", "Item 2", "Item 3", "Item 4", "Item 5").OnSelected(func(m *MenuComponent, b bool) {})),
+			WithPosition(0, h-2, Text(colors.Blue+"Navigate: Ctrl+(W/A/S/D). Navigate Menu: W/S. Select: Enter. Exit Menu: Q. ")),
+		),
 	)
 }

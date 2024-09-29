@@ -52,13 +52,13 @@ func (m *MenuComponent) Render() string {
 }
 
 func (m *MenuComponent) Update(key string) bool {
-	if isKey.Down(key) {
+	if isKey.Char(key, "s") {
 		if m.SelectedItem+1 < len(m.Items) {
 			m.SelectedItem++
 		} else {
 			m.SelectedItem = 0
 		}
-	} else if isKey.Up(key) {
+	} else if isKey.Char(key, "w") {
 		if m.SelectedItem > 0 {
 			m.SelectedItem--
 		} else {
@@ -67,7 +67,7 @@ func (m *MenuComponent) Update(key string) bool {
 	} else if isKey.Enter(key) {
 		m.onSelected(m, true)
 		return true
-	} else if isKey.Escape(key) {
+	} else if isKey.Char(key, "q") {
 		m.onSelected(m, false)
 		return true
 	}

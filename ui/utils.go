@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/orus-dev/osui"
@@ -43,4 +44,53 @@ func WithSize(width, height int, c osui.Component) osui.Component {
 	data.Width = width
 	data.Height = height
 	return c
+}
+
+func findClosestComponent(a []osui.Component, i int, d string) int {
+	if len(a) == 0 || i < 0 || i >= len(a) {
+		return -1 // Invalid input
+	}
+
+	current := a[i].GetComponentData()
+	closestIndex := -1
+	minDistance := math.MaxFloat64
+
+	for j, c := range a {
+		component := c.GetComponentData()
+		if i == j {
+			continue // Skip the current component
+		}
+
+		// Check if the component is in the correct direction
+		isValidDirection := false
+		switch d {
+		case "up":
+			if component.Y < current.Y {
+				isValidDirection = true
+			}
+		case "down":
+			if component.Y > current.Y {
+				isValidDirection = true
+			}
+		case "left":
+			if component.X < current.X {
+				isValidDirection = true
+			}
+		case "right":
+			if component.X > current.X {
+				isValidDirection = true
+			}
+		}
+
+		// If the direction is valid, calculate distance
+		if isValidDirection {
+			distance := math.Hypot(float64(component.X-current.X), float64(component.Y-current.Y))
+			if distance < minDistance {
+				minDistance = distance
+				closestIndex = j
+			}
+		}
+	}
+
+	return closestIndex
 }

@@ -11,6 +11,7 @@ import (
 type DivStyle struct {
 	Background string `default:"" type:"bg"`
 	Foreground string `default:"" type:"fg"`
+	Outline    string `default:"" type:"fg"`
 }
 
 type DivComponent struct {
@@ -18,7 +19,6 @@ type DivComponent struct {
 	Style           *DivStyle
 	Components      []osui.Component
 	ActiveComponent int
-	onKey           func(*DivComponent, string) string
 }
 
 func (d *DivComponent) GetComponentData() *osui.ComponentData {
@@ -31,7 +31,7 @@ func (d *DivComponent) Render() string {
 	for i, c := range d.Components {
 		data := c.GetComponentData()
 		if i == d.ActiveComponent {
-			data.IsActive = true
+			data.IsActive = d.Data.IsActive
 		} else {
 			data.IsActive = false
 		}
@@ -45,41 +45,28 @@ func (d *DivComponent) Render() string {
 		data.Screen = d.Data.Screen
 		osui.RenderOnFrame(c, &frame)
 	}
-	for i, f := range frame {
-		frame[i] = colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset
+	if d.Style.Outline == "" {
+		for i, f := range frame {
+			frame[i] = colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset
+		}
+		return strings.Join(frame, "\n")
+	} else {
+		for i, f := range frame {
+			frame[i] = d.Style.Outline + "│" + colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset + d.Style.Outline + "│" + colors.Reset
+		}
 	}
-	return strings.Join(frame, "\n")
+	return " " + d.Style.Outline + strings.Repeat("_", d.Data.Width) + colors.Reset + "\n" + strings.Join(frame, "\n") + "\n " + d.Style.Outline + strings.Repeat("‾", d.Data.Width) + colors.Reset
 }
 
 func (d *DivComponent) Update(key string) bool {
-	if d.onKey != nil {
-		o := d.onKey(d, key)
-		if o == "up" {
-			d.updateActive(d.ActiveComponent - 1)
-		} else if o == "down" {
-			d.updateActive(d.ActiveComponent + 1)
-		} else if o == "true" {
-			return true
-		} else if o == "false" {
-			return false
-		} else {
-			if len(d.Components) > 0 {
-				d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
-				if d.Components[d.ActiveComponent].Update(key) {
-					if d.ActiveComponent < len(d.Components)-1 {
-						d.updateActive(d.ActiveComponent + 1)
-					} else {
-						return true
-					}
-				}
-			}
-		}
-		return false
-	}
-	if isKey.Up(key) {
-		d.updateActive(d.ActiveComponent - 1)
-	} else if isKey.Down(key) {
-		d.updateActive(d.ActiveComponent + 1)
+	if isKey.CtrlW(key) {
+		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "up"))
+	} else if isKey.CtrlS(key) {
+		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "down"))
+	} else if isKey.CtrlA(key) {
+		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "left"))
+	} else if isKey.CtrlD(key) {
+		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "right"))
 	} else {
 		if len(d.Components) > 0 {
 			d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
@@ -103,11 +90,6 @@ func (d *DivComponent) updateActive(newIndex int) {
 	if newIndex >= 0 && newIndex < len(d.Components) && len(d.Components) > 0 {
 		d.ActiveComponent = newIndex
 	}
-}
-
-func (d *DivComponent) OnKey(f func(*DivComponent, string) string) *DivComponent {
-	d.onKey = f
-	return d
 }
 
 func (d *DivComponent) AddTo(c *DivComponent) *DivComponent {

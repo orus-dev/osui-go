@@ -25,8 +25,7 @@ type Component interface {
 }
 
 type Screen struct {
-	component    Component
-	CustomRender func()
+	component Component
 }
 
 func NewScreen(c Component) *Screen {
@@ -35,11 +34,7 @@ func NewScreen(c Component) *Screen {
 	return s
 }
 
-func (s *Screen) Render() error {
-	if s.CustomRender != nil {
-		s.CustomRender()
-		return nil
-	}
+func (s *Screen) Render() {
 	Clear()
 	width, height := GetTerminalSize()
 	frame := NewFrame(width, height)
@@ -55,7 +50,6 @@ func (s *Screen) Render() error {
 	data.DefaultColor = colors.Reset
 	RenderOnFrame(s.component, &frame)
 	fmt.Print(strings.Join(frame, "\n"))
-	return nil
 }
 
 func (s *Screen) Run() {
