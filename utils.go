@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/nathan-fiscaletti/consolesize-go"
 	"github.com/orus-dev/osui/colors"
 	"golang.org/x/term"
 )
@@ -174,9 +175,5 @@ func LogicValueInt(b bool, _if, _else int) int {
 }
 
 func GetTerminalSize() (int, int) {
-	w, h, err := term.GetSize(int(os.Stdin.Fd()))
-	if err != nil {
-		panic(err)
-	}
-	return w, h
+	return consolesize.GetConsoleSize()
 }
