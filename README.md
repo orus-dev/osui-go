@@ -8,8 +8,8 @@ A Component-based TUI library written in go!
 package main
 
 import (
-	"github.com/orus-dev/osui/osui"
-	"github.com/orus-dev/osui/osui/ui"
+	"github.com/orus-dev/osui"
+	"github.com/orus-dev/osui/ui"
 )
 
 func main() {
