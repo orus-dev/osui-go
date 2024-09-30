@@ -27,7 +27,7 @@ type MenuComponent struct {
 	Style        *MenuStyle
 	Items        []string
 	SelectedItem int
-	onSelected   func(*MenuComponent, bool)
+	OnSelected   func(*MenuComponent, bool)
 }
 
 func (m *MenuComponent) GetComponentData() *osui.ComponentData {
@@ -70,10 +70,10 @@ func (m *MenuComponent) Update(key string) bool {
 			m.SelectedItem = len(m.Items) - 1
 		}
 	} else if isKey.Enter(key) {
-		m.onSelected(m, true)
+		m.OnSelected(m, true)
 		return true
 	} else if isKey.Char(key, "q") {
-		m.onSelected(m, false)
+		m.OnSelected(m, false)
 		return true
 	}
 	return false
