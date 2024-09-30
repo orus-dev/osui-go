@@ -10,7 +10,7 @@ import (
 	"github.com/orus-dev/osui/isKey"
 )
 
-type BtnParams struct {
+type ButtonParams struct {
 	Style   ButtonStyle
 	Toggle  bool
 	OnClick func(*ButtonComponent) bool
@@ -92,7 +92,7 @@ func (b *ButtonComponent) GetComponentData() *osui.ComponentData {
 	return &b.Data
 }
 
-func (b *ButtonComponent) Params(param BtnParams) *ButtonComponent {
+func (b *ButtonComponent) Params(param ButtonParams) *ButtonComponent {
 	b.Style = osui.SetDefaults(&param.Style).(*ButtonStyle)
 	if param.OnClick != nil {
 		b.on_click = param.OnClick

@@ -81,3 +81,35 @@ func findClosestComponent(a []osui.Component, i int, d string) int {
 
 	return closestIndex
 }
+
+type Id[T osui.Component] struct {
+	changer   func(T) T
+	Component T
+}
+
+func (i *Id[T]) Id(c T) T {
+	i.Component = c
+	if i.changer != nil {
+		return i.changer(i.Component)
+	}
+	return i.Component
+}
+
+func (i *Id[T]) SetProperties(c func(T) T) {
+	i.changer = c
+}
+
+type Class[T osui.Component] struct {
+	changer func(T) T
+}
+
+func (c *Class[T]) Class(co T) T {
+	if c.changer != nil {
+		return c.changer(co)
+	}
+	return co
+}
+
+func (c *Class[T]) SetProperties(ch func(T) T) {
+	c.changer = ch
+}

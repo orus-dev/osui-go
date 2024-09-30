@@ -81,6 +81,7 @@ func (m *MenuComponent) Update(key string) bool {
 
 func (b *MenuComponent) Params(param MenuParams) *MenuComponent {
 	b.Style = osui.SetDefaults(&param.Style).(*MenuStyle)
+	b.OnSelected = param.OnSelected
 	return b
 }
 
