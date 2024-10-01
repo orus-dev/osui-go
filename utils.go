@@ -14,7 +14,7 @@ import (
 	"golang.org/x/term"
 )
 
-func RenderLine(frameLine, line_ string, x int, fm *map[int]string, lm *map[int]string) string {
+func RenderLine(frameLine, line_ string, x int, fm *map[int]string, lm map[int]string) string {
 	frame := []rune(frameLine)
 	line := []rune(line_)
 
@@ -22,11 +22,8 @@ func RenderLine(frameLine, line_ string, x int, fm *map[int]string, lm *map[int]
 		if i >= x && i-x < len(line) {
 			frame[i] = line[i-x]
 			delete(*fm, i)
-		}
-		if v, ok := (*lm)[i-x]; ok {
-			if i-x > 0 {
-				delete(*lm, i-x)
-				(*lm)[i] = v
+			if v, ok := lm[i-x]; ok {
+				(*fm)[i] = v
 			}
 		}
 	}
@@ -40,8 +37,13 @@ func RenderOnFrame(c Component, frame *[]string) {
 		if int(componentData.Y)+i < len(*frame) {
 			fo, fm := CompressString((*frame)[int(componentData.Y)+i], "")
 			lo, lm := CompressString(line, "")
-			r := RenderLine(fo, lo, int(componentData.X), &fm, &lm)
-			(*frame)[int(componentData.Y)+i] = DecompressString(r, fm, lm)
+			r := RenderLine(fo, lo, int(componentData.X), &fm, lm)
+			// if strings.Contains(line, "info") {
+			// 	fmt.Printf("%#v\n", lm)
+			// 	for {
+			// 	}
+			// }
+			(*frame)[int(componentData.Y)+i] = DecompressString(r, fm)
 		}
 	}
 }
@@ -61,16 +63,13 @@ func CompressString(input, repl string) (string, map[int]string) {
 	return re.ReplaceAllString(input, repl), matchesMap
 }
 
-func DecompressString(modified string, fm map[int]string, lm map[int]string) string {
+func DecompressString(modified string, fm map[int]string) string {
 	res := ""
 	for i, c := range modified {
+		res += string(c)
 		if v, ok := fm[i]; ok {
 			res += v
 		}
-		if v, ok := lm[i]; ok {
-			res += v
-		}
-		res += string(c)
 	}
 	return res
 }
