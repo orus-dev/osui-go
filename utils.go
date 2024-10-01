@@ -24,8 +24,10 @@ func RenderLine(frameLine, line_ string, x int, fm *map[int]string, lm *map[int]
 			delete(*fm, i)
 		}
 		if v, ok := (*lm)[i-x]; ok {
-			delete(*lm, i-x)
-			(*lm)[i] = v
+			if i-x > 0 {
+				delete(*lm, i-x)
+				(*lm)[i] = v
+			}
 		}
 	}
 
