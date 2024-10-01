@@ -14,22 +14,18 @@ import (
 	"golang.org/x/term"
 )
 
-func renderLine(frameLine, line_ string, x int) string {
+func RenderLine(frameLine, line_ string, x int, fm *map[int]string, lm *map[int]string) string {
 	frame := []rune(frameLine)
 	line := []rune(line_)
 
-	i := 0
-	v := 0
-	for j, c := range frame {
-		if i+j >= x && v < len(line) {
-			if c != '\b' && line[v] == '\t' {
-				frame = append(frame[:i+j], append([]rune{' '}, frame[i+j:]...)...)
-			}
-			frame[i+j] = line[v]
-			v++
+	for i := range frame {
+		if i >= x && i-x < len(line) {
+			frame[i] = line[i-x]
+			delete(*fm, i)
 		}
-		if c == '\b' {
-			i++
+		if v, ok := (*lm)[i-x]; ok {
+			delete(*lm, i-x)
+			(*lm)[i] = v
 		}
 	}
 
@@ -38,34 +34,43 @@ func renderLine(frameLine, line_ string, x int) string {
 
 func RenderOnFrame(c Component, frame *[]string) {
 	componentData := c.GetComponentData()
-	for i, lo := range strings.Split(c.Render(), "\n") {
+	for i, line := range strings.Split(c.Render(), "\n") {
 		if int(componentData.Y)+i < len(*frame) {
-			fo := (*frame)[int(componentData.Y)+i]
-			f, fa := CompressString(fo, "\b")
-			line, la := CompressString(lo, "\t")
-			r := renderLine(f, line, int(componentData.X))
-			(*frame)[int(componentData.Y)+i] = DecompressString(DecompressString(r, la, "\t"), fa, "\b")
+			fo, fm := CompressString((*frame)[int(componentData.Y)+i], "")
+			lo, lm := CompressString(line, "")
+			r := RenderLine(fo, lo, int(componentData.X), &fm, &lm)
+			(*frame)[int(componentData.Y)+i] = DecompressString(r, fm, lm)
 		}
 	}
 }
 
-func CompressString(input, repl string) (string, []string) {
+func CompressString(input, repl string) (string, map[int]string) {
 	pattern := `\x1b\[([0-9;]*)[a-zA-Z]`
 	re := regexp.MustCompile(pattern)
-	matches := re.FindAllString(input, -1)
-	return re.ReplaceAllString(input, repl), matches
+	matches := re.FindAllStringIndex(input, -1)
+	matchesMap := make(map[int]string)
+	n := 0
+	for _, match := range matches {
+		start := match[0]
+		end := match[1]
+		matchesMap[start-n] = input[start:end]
+		n += len(input[start:end])
+	}
+	return re.ReplaceAllString(input, repl), matchesMap
 }
 
-func DecompressString(modified string, outputArray []string, c string) string {
-	parts := strings.Split(modified, c)
-	reconstructed := ""
-	for i, part := range parts {
-		reconstructed += part
-		if i < len(outputArray) {
-			reconstructed += outputArray[i]
+func DecompressString(modified string, fm map[int]string, lm map[int]string) string {
+	res := ""
+	for i, c := range modified {
+		if v, ok := fm[i]; ok {
+			res += v
 		}
+		if v, ok := lm[i]; ok {
+			res += v
+		}
+		res += string(c)
 	}
-	return reconstructed
+	return res
 }
 
 func ReadKey() (string, error) {
@@ -173,7 +178,6 @@ func LogicValueInt(b bool, _if, _else int) int {
 	}
 	return _else
 }
-
 
 // Get the terminal size
 func GetTerminalSize() (int, int) {
