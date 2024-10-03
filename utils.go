@@ -14,13 +14,16 @@ import (
 	"golang.org/x/term"
 )
 
-func RenderLine(frame_, line_ string, x int, fm map[int]string, lm map[int]string) string {
+var re = regexp.MustCompile(`(\x1b\[([0-9;]*)[a-zA-Z])+`)
+
+func RenderLine(frame_, line_ string, x int, fm, lm map[int]string) string {
 	var res strings.Builder
 	frame := []rune(frame_)
 	line := []rune(line_)
 
-	for i := range frame {
-		if i >= x && i-x < len(line) {
+	flen, llen := len(frame), len(line)
+	for i := 0; i < flen; i++ {
+		if i >= x && i-x < llen {
 			if v, ok := lm[i-x]; ok {
 				res.WriteString(v)
 			}
@@ -36,8 +39,6 @@ func RenderLine(frame_, line_ string, x int, fm map[int]string, lm map[int]strin
 }
 
 func CompressString(input string) (string, map[int]string) {
-	pattern := `(\x1b\[([0-9;]*)[a-zA-Z])+`
-	re := regexp.MustCompile(pattern)
 	matchesMap := make(map[int]string)
 	res := []rune{}
 
