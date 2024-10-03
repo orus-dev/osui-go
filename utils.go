@@ -14,11 +14,6 @@ import (
 	"golang.org/x/term"
 )
 
-func LogToFile(s string, a ...any) {
-	existingData, _ := os.ReadFile("log.log")
-	os.WriteFile("log.log", []byte(string(existingData)+"\n"+fmt.Sprintf(s, a...)), 0644)
-}
-
 func RenderLine(frame_, line_ string, x int, fm map[int]string, lm map[int]string) string {
 	var res strings.Builder
 	frame := []rune(frame_)
@@ -26,29 +21,17 @@ func RenderLine(frame_, line_ string, x int, fm map[int]string, lm map[int]strin
 
 	for i := range frame {
 		if i >= x && i-x < len(line) {
-			// Render character from 'line'
-			res.WriteRune(line[i-x])
-
-			// Add escape sequence from line's map (lm), if any
 			if v, ok := lm[i-x]; ok {
 				res.WriteString(v)
 			}
+			res.WriteRune(line[i-x])
 		} else {
-			// Render character from 'frame'
-			res.WriteRune(frame[i])
-
-			// Add escape sequence from frame's map (fm), if any
 			if v, ok := fm[i]; ok {
 				res.WriteString(v)
 			}
+			res.WriteRune(frame[i])
 		}
 	}
-
-	// Log the result string for debugging
-	// LogToFile("line_: %#v", line_)
-	// LogToFile("lm: %#v", lm)
-	// LogToFile("result: %#v\n", res.String())
-
 	return res.String()
 }
 
@@ -81,9 +64,6 @@ func RenderOnFrame(c Component, frame *[]string) {
 		if int(componentData.Y)+i < len(*frame) {
 			fo, fm := CompressString((*frame)[int(componentData.Y)+i])
 			lo, lm := CompressString(line)
-			LogToFile("line: %#v", line)
-			LogToFile("Line Map (lm): %#v", lm)
-			LogToFile("Compressed Line: %#v\n", lo)
 			(*frame)[int(componentData.Y)+i] = RenderLine(fo, lo, componentData.X, fm, lm)
 		}
 	}

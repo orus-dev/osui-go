@@ -34,7 +34,6 @@ func NewScreen(c Component) *Screen {
 }
 
 func (s *Screen) Render() {
-	Clear()
 	width, height := GetTerminalSize()
 	frame := NewFrame(width, height)
 	data := s.component.GetComponentData()
@@ -48,6 +47,7 @@ func (s *Screen) Render() {
 	data.IsActive = true
 	data.DefaultColor = colors.Reset
 	RenderOnFrame(s.component, &frame)
+	Clear()
 	fmt.Print(strings.Join(frame, "\n"))
 }
 
