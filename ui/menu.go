@@ -42,7 +42,7 @@ func (m *MenuComponent) Render() string {
 	if !m.Data.IsActive {
 		cursor = m.Style.CursorInactive
 	}
-	d, _ := osui.CompressString(m.Style.Cursor, "")
+	d, _ := osui.CompressString(m.Style.Cursor)
 	empty := strings.Repeat(" ", len(d))
 
 	for i, item := range m.Items {

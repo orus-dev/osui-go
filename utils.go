@@ -14,64 +14,79 @@ import (
 	"golang.org/x/term"
 )
 
-func RenderLine(frameLine, line_ string, x int, fm *map[int]string, lm map[int]string) string {
-	frame := []rune(frameLine)
+func LogToFile(s string, a ...any) {
+	existingData, _ := os.ReadFile("log.log")
+	os.WriteFile("log.log", []byte(string(existingData)+"\n"+fmt.Sprintf(s, a...)), 0644)
+}
+
+func RenderLine(frame_, line_ string, x int, fm map[int]string, lm map[int]string) string {
+	var res strings.Builder
+	frame := []rune(frame_)
 	line := []rune(line_)
 
 	for i := range frame {
 		if i >= x && i-x < len(line) {
-			frame[i] = line[i-x]
-			delete(*fm, i)
+			// Render character from 'line'
+			res.WriteRune(line[i-x])
+
+			// Add escape sequence from line's map (lm), if any
 			if v, ok := lm[i-x]; ok {
-				(*fm)[i] = v
+				res.WriteString(v)
+			}
+		} else {
+			// Render character from 'frame'
+			res.WriteRune(frame[i])
+
+			// Add escape sequence from frame's map (fm), if any
+			if v, ok := fm[i]; ok {
+				res.WriteString(v)
 			}
 		}
 	}
 
-	return string(frame)
+	// Log the result string for debugging
+	// LogToFile("line_: %#v", line_)
+	// LogToFile("lm: %#v", lm)
+	// LogToFile("result: %#v\n", res.String())
+
+	return res.String()
+}
+
+func CompressString(input string) (string, map[int]string) {
+	pattern := `(\x1b\[([0-9;]*)[a-zA-Z])+`
+	re := regexp.MustCompile(pattern)
+	matchesMap := make(map[int]string)
+	res := []rune{}
+
+	i := 0
+	for i < len([]rune(input)) {
+		loc := re.FindStringIndex(string([]rune(input)[i:]))
+
+		if loc != nil && loc[0] == 0 {
+			ansiSeq := re.FindString(string([]rune(input)[i:]))
+			matchesMap[len(res)] = ansiSeq
+			i += len([]rune(ansiSeq))
+		} else {
+			res = append(res, []rune(input)[i])
+			i++
+		}
+	}
+
+	return string(res), matchesMap
 }
 
 func RenderOnFrame(c Component, frame *[]string) {
 	componentData := c.GetComponentData()
 	for i, line := range strings.Split(c.Render(), "\n") {
 		if int(componentData.Y)+i < len(*frame) {
-			fo, fm := CompressString((*frame)[int(componentData.Y)+i], "")
-			lo, lm := CompressString(line, "")
-			r := RenderLine(fo, lo, int(componentData.X), &fm, lm)
-			// if strings.Contains(line, "info") {
-			// 	fmt.Printf("%#v\n", lm)
-			// 	for {
-			// 	}
-			// }
-			(*frame)[int(componentData.Y)+i] = DecompressString(r, fm)
+			fo, fm := CompressString((*frame)[int(componentData.Y)+i])
+			lo, lm := CompressString(line)
+			LogToFile("line: %#v", line)
+			LogToFile("Line Map (lm): %#v", lm)
+			LogToFile("Compressed Line: %#v\n", lo)
+			(*frame)[int(componentData.Y)+i] = RenderLine(fo, lo, componentData.X, fm, lm)
 		}
 	}
-}
-
-func CompressString(input, repl string) (string, map[int]string) {
-	pattern := `\x1b\[([0-9;]*)[a-zA-Z]`
-	re := regexp.MustCompile(pattern)
-	matches := re.FindAllStringIndex(input, -1)
-	matchesMap := make(map[int]string)
-	n := 0
-	for _, match := range matches {
-		start := match[0]
-		end := match[1]
-		matchesMap[start-n] = input[start:end]
-		n += len(input[start:end])
-	}
-	return re.ReplaceAllString(input, repl), matchesMap
-}
-
-func DecompressString(modified string, fm map[int]string) string {
-	res := ""
-	for i, c := range modified {
-		res += string(c)
-		if v, ok := fm[i]; ok {
-			res += v
-		}
-	}
-	return res
 }
 
 func ReadKey() (string, error) {
