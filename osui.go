@@ -52,6 +52,7 @@ func (s *Screen) Render() {
 }
 
 func (s *Screen) Run() {
+	DisableEcho()
 	data := s.component.GetComponentData()
 	data.Screen = s
 	for {
@@ -59,6 +60,7 @@ func (s *Screen) Run() {
 		k, _ := ReadKey()
 		if s.component.Update(k) {
 			ShowCursor()
+			EnableEcho()
 			return
 		}
 	}

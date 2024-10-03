@@ -84,6 +84,24 @@ func ReadKey() (string, error) {
 	return string(b[:n]), nil
 }
 
+func DisableEcho() {
+	switch runtime.GOOS {
+	case "windows":
+		// Need to implement this later
+	default:
+		exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+	}
+}
+
+func EnableEcho() {
+	switch runtime.GOOS {
+	case "windows":
+		// Need to implement this later
+	default:
+		exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+	}
+}
+
 func NewFrame(width, height int) []string {
 	frame := make([]string, height)
 	for i := 0; i < height; i++ {

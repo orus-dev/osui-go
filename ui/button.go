@@ -45,30 +45,30 @@ func (b *ButtonComponent) Render() string {
 
 	if b.Clicked {
 		return fmt.Sprintf(" %s\n%s│%s│%s\n %s",
-			colors.Reset+b.Style.ClickedOutline+strings.Repeat("_", b.Data.Width)+colors.Reset+b.Data.DefaultColor,
+			colors.Reset+b.Style.ClickedOutline+strings.Repeat("_", b.Data.Width-2)+colors.Reset+b.Data.DefaultColor,
 			colors.Reset+b.Style.ClickedOutline,
-			colors.Reset+colors.Combine(b.Style.ClickedBackground, b.Style.ClickedForeground)+centerText(b.Text, b.Data.Width)+colors.Reset+b.Style.ClickedOutline,
+			colors.Reset+colors.Combine(b.Style.ClickedBackground, b.Style.ClickedForeground)+centerText(b.Text, b.Data.Width-2)+colors.Reset+b.Style.ClickedOutline,
 			colors.Reset+b.Data.DefaultColor,
-			colors.Reset+b.Style.ClickedOutline+strings.Repeat("‾", b.Data.Width)+colors.Reset+b.Data.DefaultColor,
+			colors.Reset+b.Style.ClickedOutline+strings.Repeat("‾", b.Data.Width-2)+colors.Reset+b.Data.DefaultColor,
 		)
 	}
 
 	if b.Data.IsActive {
 		return fmt.Sprintf(" %s\n%s│%s│%s\n %s",
-			colors.Reset+b.Style.ActiveOutline+strings.Repeat("_", b.Data.Width)+colors.Reset+b.Data.DefaultColor,
+			colors.Reset+b.Style.ActiveOutline+strings.Repeat("_", b.Data.Width-2)+colors.Reset+b.Data.DefaultColor,
 			colors.Reset+b.Style.ActiveOutline,
-			colors.Reset+colors.Combine(b.Style.ActiveBackground, b.Style.ActiveForeground)+centerText(b.Text, b.Data.Width)+colors.Reset+b.Style.ActiveOutline,
+			colors.Reset+colors.Combine(b.Style.ActiveBackground, b.Style.ActiveForeground)+centerText(b.Text, b.Data.Width-2)+colors.Reset+b.Style.ActiveOutline,
 			colors.Reset+b.Data.DefaultColor,
-			colors.Reset+b.Style.ActiveOutline+strings.Repeat("‾", b.Data.Width)+colors.Reset+b.Data.DefaultColor,
+			colors.Reset+b.Style.ActiveOutline+strings.Repeat("‾", b.Data.Width-2)+colors.Reset+b.Data.DefaultColor,
 		)
 	}
 
 	return fmt.Sprintf(" %s\n%s│%s│%s\n %s",
-		colors.Reset+b.Style.Outline+strings.Repeat("_", b.Data.Width)+colors.Reset+b.Data.DefaultColor,
+		colors.Reset+b.Style.Outline+strings.Repeat("_", b.Data.Width-2)+colors.Reset+b.Data.DefaultColor,
 		colors.Reset+b.Style.Outline,
-		colors.Reset+colors.Combine(b.Style.Background, b.Style.Foreground)+centerText(b.Text, b.Data.Width)+colors.Reset+b.Style.Outline,
+		colors.Reset+colors.Combine(b.Style.Background, b.Style.Foreground)+centerText(b.Text, b.Data.Width-2)+colors.Reset+b.Style.Outline,
 		colors.Reset+b.Data.DefaultColor,
-		colors.Reset+b.Style.Outline+strings.Repeat("‾", b.Data.Width)+colors.Reset+b.Data.DefaultColor,
+		colors.Reset+b.Style.Outline+strings.Repeat("‾", b.Data.Width-2)+colors.Reset+b.Data.DefaultColor,
 	)
 }
 

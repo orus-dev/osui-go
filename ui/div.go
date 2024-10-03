@@ -33,7 +33,7 @@ func (d *DivComponent) GetComponentData() *osui.ComponentData {
 
 func (d *DivComponent) Render() string {
 	osui.UseStyle(d.Style)
-	frame := osui.NewFrame(d.Data.Width, d.Data.Height)
+	frame := osui.NewFrame(d.Data.Width-2, d.Data.Height-2)
 	for i, c := range d.Components {
 		data := c.GetComponentData()
 		if i == d.ActiveComponent {
@@ -42,10 +42,10 @@ func (d *DivComponent) Render() string {
 			data.IsActive = false
 		}
 		if data.Width == 0 {
-			data.Width = d.Data.Width
+			data.Width = d.Data.Width - 2
 		}
 		if data.Height == 0 {
-			data.Height = d.Data.Height
+			data.Height = d.Data.Height - 2
 		}
 		data.DefaultColor = colors.Combine(d.Style.Background, d.Style.Foreground)
 		data.Screen = d.Data.Screen
@@ -61,7 +61,7 @@ func (d *DivComponent) Render() string {
 			frame[i] = d.Style.Outline + "│" + colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset + d.Style.Outline + "│" + colors.Reset
 		}
 	}
-	return " " + d.Style.Outline + strings.Repeat("_", d.Data.Width) + colors.Reset + "\n" + strings.Join(frame, "\n") + "\n " + d.Style.Outline + strings.Repeat("‾", d.Data.Width) + colors.Reset
+	return " " + d.Style.Outline + strings.Repeat("_", d.Data.Width-2) + colors.Reset + "\n" + strings.Join(frame, "\n") + "\n " + d.Style.Outline + strings.Repeat("‾", d.Data.Width-2) + colors.Reset
 }
 
 func (d *DivComponent) Update(key string) bool {
