@@ -33,7 +33,7 @@ func App() *ui.PaginatorComponent {
 			ui.WithPosition(0, 0, ui.Text("This blue square is a div. A div stores multiple components into one")),
 			ui.WithPosition((w-30)/2, (h-4)/2,
 				ui.WithSize(32, 7,
-					ui.Div(ui.WithPosition(6, 1, ui.Button("Hello, World!").Params(ui.ButtonParams{Width: 19}))).Params(ui.DivParams{Style: ui.DivStyle{Outline: colors.Blue}}),
+					ui.Div(ui.WithPosition(2, 2, ui.Text("This text is inside a div!"))).Params(ui.DivParams{Style: ui.DivStyle{Outline: colors.Blue, Foreground: colors.Red}}),
 				)),
 			keybindings.Class(ui.Text("Navigate: Ctrl+(W/A/S/D)")),
 		),

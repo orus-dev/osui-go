@@ -58,7 +58,7 @@ func (d *DivComponent) Render() string {
 		return strings.Join(frame, "\n")
 	} else {
 		for i, f := range frame {
-			frame[i] = d.Style.Outline + "│" + colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset + d.Style.Outline + "│" + colors.Reset
+			frame[i] = d.Style.Outline + "│" + colors.Reset + colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset + d.Style.Outline + "│" + colors.Reset
 		}
 	}
 	return " " + d.Style.Outline + strings.Repeat("_", d.Data.Width-2) + colors.Reset + "\n" + strings.Join(frame, "\n") + "\n " + d.Style.Outline + strings.Repeat("‾", d.Data.Width-2) + colors.Reset

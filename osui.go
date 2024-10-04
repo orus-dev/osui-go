@@ -2,9 +2,11 @@ package osui
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/orus-dev/osui/colors"
+	"golang.org/x/term"
 )
 
 type ComponentData struct {
@@ -48,11 +50,15 @@ func (s *Screen) Render() {
 	data.DefaultColor = colors.Reset
 	RenderOnFrame(s.component, &frame)
 	Clear()
-	fmt.Print(strings.Join(frame, "\n"))
+	fmt.Print(strings.Join(frame, ""))
 }
 
 func (s *Screen) Run() {
-	DisableEcho()
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
 	data := s.component.GetComponentData()
 	data.Screen = s
 	for {
@@ -60,7 +66,6 @@ func (s *Screen) Run() {
 		k, _ := ReadKey()
 		if s.component.Update(k) {
 			ShowCursor()
-			EnableEcho()
 			return
 		}
 	}

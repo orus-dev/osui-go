@@ -11,7 +11,6 @@ import (
 
 	"github.com/nathan-fiscaletti/consolesize-go"
 	"github.com/orus-dev/osui/colors"
-	"golang.org/x/term"
 )
 
 var re = regexp.MustCompile(`(\x1b\[([0-9;]*)[a-zA-Z])+`)
@@ -71,35 +70,12 @@ func RenderOnFrame(c Component, frame *[]string) {
 }
 
 func ReadKey() (string, error) {
-	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-	if err != nil {
-		return "", err
-	}
-	defer term.Restore(int(os.Stdin.Fd()), oldState)
 	var b [3]byte
 	n, err := os.Stdin.Read(b[:])
 	if err != nil {
 		return "", err
 	}
 	return string(b[:n]), nil
-}
-
-func DisableEcho() {
-	switch runtime.GOOS {
-	case "windows":
-		// Need to implement this later
-	default:
-		exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
-	}
-}
-
-func EnableEcho() {
-	switch runtime.GOOS {
-	case "windows":
-		// Need to implement this later
-	default:
-		exec.Command("stty", "-F", "/dev/tty", "echo").Run()
-	}
 }
 
 func NewFrame(width, height int) []string {
