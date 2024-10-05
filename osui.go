@@ -26,19 +26,19 @@ type Component interface {
 }
 
 type Screen struct {
-	component Component
+	Component Component
 }
 
 func NewScreen(c Component) *Screen {
 	HideCursor()
-	s := &Screen{component: c}
+	s := &Screen{Component: c}
 	return s
 }
 
 func (s *Screen) Render() {
 	width, height := GetTerminalSize()
 	frame := NewFrame(width, height)
-	data := s.component.GetComponentData()
+	data := s.Component.GetComponentData()
 	if data.Height == 0 {
 		data.Height = height
 	}
@@ -48,7 +48,7 @@ func (s *Screen) Render() {
 	data.Screen = s
 	data.IsActive = true
 	data.DefaultColor = colors.Reset
-	RenderOnFrame(s.component, &frame)
+	RenderOnFrame(s.Component, &frame)
 	Clear()
 	fmt.Print(strings.Join(frame, ""))
 }
@@ -59,12 +59,12 @@ func (s *Screen) Run() {
 		panic(err)
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
-	data := s.component.GetComponentData()
+	data := s.Component.GetComponentData()
 	data.Screen = s
 	for {
 		s.Render()
 		k, _ := ReadKey()
-		if s.component.Update(k) {
+		if s.Component.Update(k) {
 			ShowCursor()
 			return
 		}
