@@ -6,7 +6,7 @@ import (
 
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
-	"github.com/orus-dev/osui/isKey"
+	"github.com/orus-dev/osui/keys"
 )
 
 type PaginatorParams struct {
@@ -62,19 +62,19 @@ func (p *PaginatorComponent) Render() string {
 }
 
 func (p *PaginatorComponent) Update(key string) bool {
-	if key == "\x1b[Z" {
+	if f, ok := p.Data.Keys["previous"]; ok && f(key) {
 		if p.ActiveComponent > 0 {
 			p.updateActive(p.ActiveComponent - 1)
 		} else {
 			p.updateActive(len(p.Components) - 1)
 		}
-	} else if isKey.Tab(key) {
+	} else if f, ok := p.Data.Keys["next"]; ok && f(key) {
 		if p.ActiveComponent < len(p.Components)-1 {
 			p.updateActive(p.ActiveComponent + 1)
 		} else {
 			p.updateActive(0)
 		}
-	} else if isKey.Escape(key) {
+	} else if f, ok := p.Data.Keys["exit"]; ok && f(key) {
 		fmt.Print("\n\n")
 		return true
 	} else {
@@ -99,6 +99,11 @@ func (p *PaginatorComponent) updateActive(newIndex int) {
 }
 
 func Paginator(param osui.Param, pages ...osui.Component) *PaginatorComponent {
+	param.SetDefaultBindings(map[string]func(string) bool{
+		"previous": keys.ShiftTab,
+		"next":     keys.Tab,
+		"exit":     keys.Escape,
+	})
 	return param.UseParam(&PaginatorComponent{
 		Components: pages,
 	}).(*PaginatorComponent)

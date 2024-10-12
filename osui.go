@@ -50,14 +50,26 @@ func (s *Style) UseStyle() {
 }
 
 type Param struct {
-	Style    Style `json:"style"`
-	X        int   `json:"y"`
-	Y        int   `json:"x"`
-	Width    int   `json:"width"`
-	Height   int   `json:"height"`
-	OnClick  func()
-	OnUpdate func(ctx *Context)
-	Toggle   bool `json:"useToggle"`
+	Style   Style `json:"style"`
+	X       int   `json:"y"`
+	Y       int   `json:"x"`
+	Width   int   `json:"width"`
+	Height  int   `json:"height"`
+	OnClick func()
+	Keys    map[string]func(string) bool
+	Toggle  bool `json:"useToggle"`
+}
+
+func (p *Param) SetDefaultBindings(keys map[string]func(string) bool) {
+	if p.Keys == nil {
+		p.Keys = keys
+		return
+	}
+	for k, f := range keys {
+		if _, ok := p.Keys[k]; !ok {
+			p.Keys[k] = f
+		}
+	}
 }
 
 func (p *Param) UseParam(c Component) Component {
@@ -80,20 +92,11 @@ func (p *Param) UseParam(c Component) Component {
 		data.OnClick = func() {}
 	}
 
-	if p.OnUpdate != nil {
-		data.OnUpdate = p.OnUpdate
-	} else {
-		data.OnUpdate = func(ctx *Context) { ctx.Response = 0 }
-	}
-
 	data.Toggle = p.Toggle
 
-	return c
-}
+	data.Keys = p.Keys
 
-type Context struct {
-	Key      string
-	Response int
+	return c
 }
 
 type ComponentData struct {
@@ -105,7 +108,7 @@ type ComponentData struct {
 	IsActive     bool
 	Style        Style
 	OnClick      func()
-	OnUpdate     func(ctx *Context)
+	Keys         map[string]func(string) bool
 	Toggle       bool
 	Screen       *Screen
 }

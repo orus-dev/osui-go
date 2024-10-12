@@ -6,7 +6,7 @@ import (
 
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
-	"github.com/orus-dev/osui/isKey"
+	"github.com/orus-dev/osui/keys"
 )
 
 type InputBoxParams struct {
@@ -51,17 +51,17 @@ func (s InputBoxComponent) Render() string {
 }
 
 func (s *InputBoxComponent) Update(key string) bool {
-	if isKey.Enter(key) {
+	if f, ok := s.Data.Keys["done"]; ok && f(key) {
 		return true
-	} else if isKey.Backspace(key) {
+	} else if f, ok := s.Data.Keys["remove"]; ok && f(key) {
 		if len(s.InputData) > 0 {
 			s.InputData = s.InputData[:len(s.InputData)-1]
 		}
-	} else if isKey.Left(key) {
+	} else if f, ok := s.Data.Keys["left"]; ok && f(key) {
 		if s.cursor > 0 {
 			s.cursor--
 		}
-	} else if isKey.Right(key) {
+	} else if f, ok := s.Data.Keys["right"]; ok && f(key) {
 		if s.cursor < s.max_size {
 			s.cursor++
 		}
@@ -76,5 +76,11 @@ func (s *InputBoxComponent) Update(key string) bool {
 }
 
 func InputBox(param osui.Param, max_size uint) *InputBoxComponent {
+	param.SetDefaultBindings(map[string]func(string) bool{
+		"done":   keys.Enter,
+		"remove": keys.Backspace,
+		"left":   keys.Left,
+		"right":  keys.Right,
+	})
 	return param.UseParam(&InputBoxComponent{max_size: max_size}).(*InputBoxComponent)
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
-	"github.com/orus-dev/osui/isKey"
+	"github.com/orus-dev/osui/keys"
 )
 
 type MenuComponent struct {
@@ -41,32 +41,32 @@ func (m *MenuComponent) Render() string {
 }
 
 func (m *MenuComponent) Update(key string) bool {
-	ctx := osui.Context{Key: key}
-	m.Data.OnUpdate(&ctx)
-	if ctx.Response != 0 {
-		return false
-	}
-
-	if isKey.Down(key) {
-		if m.SelectedItem+1 < len(m.Items) {
-			m.SelectedItem++
-		} else {
-			m.SelectedItem = 0
-		}
-	} else if isKey.Up(key) {
+	if f, ok := m.Data.Keys["up"]; ok && f(key) {
 		if m.SelectedItem > 0 {
 			m.SelectedItem--
 		} else {
 			m.SelectedItem = len(m.Items) - 1
 		}
-	} else if isKey.Enter(key) {
+	} else if f, ok := m.Data.Keys["down"]; ok && f(key) {
+		if m.SelectedItem+1 < len(m.Items) {
+			m.SelectedItem++
+		} else {
+			m.SelectedItem = 0
+		}
+	} else if f, ok := m.Data.Keys["select"]; ok && f(key) {
 		m.Data.OnClick()
 		return true
 	}
+
 	return false
 }
 
 func Menu(param osui.Param, items ...string) *MenuComponent {
+	param.SetDefaultBindings(map[string]func(string) bool{
+		"up":     keys.Up,
+		"down":   keys.Down,
+		"select": keys.Enter,
+	})
 	return param.UseParam(&MenuComponent{
 		Items: items,
 	}).(*MenuComponent)

@@ -5,7 +5,7 @@ import (
 
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
-	"github.com/orus-dev/osui/isKey"
+	"github.com/orus-dev/osui/keys"
 )
 
 type DivParams struct {
@@ -65,26 +65,21 @@ func (d *DivComponent) Render() string {
 }
 
 func (d *DivComponent) Update(key string) bool {
-	if isKey.CtrlW(key) {
+	if f, ok := d.Data.Keys["up"]; ok && f(key) {
 		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "up"))
-	} else if isKey.CtrlS(key) {
+	} else if f, ok := d.Data.Keys["down"]; ok && f(key) {
 		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "down"))
-	} else if isKey.CtrlA(key) {
+	} else if f, ok := d.Data.Keys["left"]; ok && f(key) {
 		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "left"))
-	} else if isKey.CtrlD(key) {
+	} else if f, ok := d.Data.Keys["right"]; ok && f(key) {
 		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "right"))
-	} else {
-		if len(d.Components) > 0 {
-			d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
-			if d.Components[d.ActiveComponent].Update(key) {
-				if d.ActiveComponent < len(d.Components)-1 {
-					d.updateActive(d.ActiveComponent + 1)
-				} else {
-					return true
-				}
-			}
+	} else if len(d.Components) > 0 {
+		d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
+		if d.Components[d.ActiveComponent].Update(key) {
+			d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "down"))
 		}
 	}
+
 	return false
 }
 
@@ -95,6 +90,12 @@ func (d *DivComponent) updateActive(newIndex int) {
 }
 
 func Div(param osui.Param, components ...osui.Component) *DivComponent {
+	param.SetDefaultBindings(map[string]func(string) bool{
+		"up": keys.CtrlW,
+		"down": keys.CtrlS,
+		"left": keys.CtrlA,
+		"right": keys.CtrlD,
+	})
 	return param.UseParam(&DivComponent{
 		Components: components,
 	}).(*DivComponent)

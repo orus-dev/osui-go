@@ -7,7 +7,7 @@ import (
 
 	"github.com/orus-dev/osui"
 	"github.com/orus-dev/osui/colors"
-	"github.com/orus-dev/osui/isKey"
+	"github.com/orus-dev/osui/keys"
 )
 
 type ButtonComponent struct {
@@ -49,7 +49,7 @@ func (b *ButtonComponent) Render() string {
 }
 
 func (b *ButtonComponent) Update(key string) bool {
-	if isKey.Enter(key) {
+	if f, ok := b.Data.Keys["click"]; ok && f(key) {
 		b.Data.OnClick()
 		if b.Data.Toggle {
 			b.clicked = !b.clicked
@@ -60,6 +60,7 @@ func (b *ButtonComponent) Update(key string) bool {
 		time.Sleep(time.Millisecond * 120)
 		b.clicked = false
 	}
+
 	return false
 }
 
@@ -68,6 +69,9 @@ func (b *ButtonComponent) GetComponentData() *osui.ComponentData {
 }
 
 func Button(param osui.Param, text string) *ButtonComponent {
+	param.SetDefaultBindings(map[string]func(string) bool{
+		"click": keys.Enter,
+	})
 	return param.UseParam(&ButtonComponent{Text: text,
 		Data: osui.ComponentData{
 			Width:  20,
