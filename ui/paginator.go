@@ -34,7 +34,7 @@ func (p *PaginatorComponent) GetComponentData() *osui.ComponentData {
 func (p *PaginatorComponent) Render() string {
 	width, _ := osui.GetTerminalSize()
 	pgs := strings.Repeat(" ", (width-len(p.Components))/2)
-	osui.UseStyle(p.Style)
+	p.Data.Style.UseStyle()
 	frame := osui.NewFrame(p.Data.Width, p.Data.Height)
 	for i, c := range p.Components {
 		data := c.GetComponentData()
@@ -98,15 +98,8 @@ func (p *PaginatorComponent) updateActive(newIndex int) {
 	}
 }
 
-func (b *PaginatorComponent) Params(p interface{}) *PaginatorComponent {
-	param := p.(PaginatorParams)
-	b.Style = osui.SetDefaults(&param.Style).(*PaginatorStyle)
-	return b
-}
-
-func Paginator(pages ...osui.Component) *PaginatorComponent {
-	return &PaginatorComponent{
+func Paginator(param osui.Param, pages ...osui.Component) *PaginatorComponent {
+	return param.UseParam(&PaginatorComponent{
 		Components: pages,
-		Style:      osui.SetDefaults(&PaginatorStyle{}).(*PaginatorStyle),
-	}
+	}).(*PaginatorComponent)
 }

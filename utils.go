@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"reflect"
 	"regexp"
 	"runtime"
 	"strings"
 
 	"github.com/nathan-fiscaletti/consolesize-go"
-	"github.com/orus-dev/osui/colors"
 )
 
 var re = regexp.MustCompile(`(\x1b\[([0-9;]*)[a-zA-Z])+`)
@@ -99,55 +97,6 @@ func Clear() {
 	}
 }
 
-func SetDefaults(p interface{}) interface{} {
-	v := reflect.ValueOf(p)
-	if v.Kind() != reflect.Ptr {
-		panic("SetDefaults: expected a pointer to a struct")
-	}
-	val := v.Elem()
-	if val.Kind() != reflect.Struct {
-		panic("SetDefaults: expected a pointer to a struct")
-	}
-	typ := val.Type()
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		structField := typ.Field(i)
-		if defaultValue, ok := structField.Tag.Lookup("default"); ok {
-			if field.Kind() == reflect.String && field.String() == "" {
-				field.SetString(defaultValue)
-			}
-		}
-	}
-	return p
-}
-
-func UseStyle(p interface{}) {
-	SetDefaults(p)
-	v := reflect.ValueOf(p)
-	if v.Kind() != reflect.Ptr {
-		panic("SetStyle: expected a pointer to a struct")
-	}
-	val := v.Elem()
-	if val.Kind() != reflect.Struct {
-		panic("SetStyle: expected a pointer to a struct")
-	}
-	typ := val.Type()
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		structField := typ.Field(i)
-		if styleType, ok := structField.Tag.Lookup("type"); ok {
-			if field.Kind() == reflect.String {
-				if styleType == "bg" || styleType == "background" {
-					field.SetString(colors.AsBg(field.String()))
-				} else {
-					field.SetString(colors.AsFg(field.String()))
-				}
-			}
-		}
-	}
-
-}
-
 func ShowCursor() {
 	fmt.Print("\033[?25h")
 }
@@ -170,7 +119,6 @@ func LogicValueInt(b bool, _if, _else int) int {
 	return _else
 }
 
-// Get the terminal size
 func GetTerminalSize() (int, int) {
 	return consolesize.GetConsoleSize()
 }

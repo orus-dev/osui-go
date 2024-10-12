@@ -21,6 +21,6 @@ func (t TextComponent) Render() string {
 	return t.Text
 }
 
-func Text(text string) *TextComponent {
-	return &TextComponent{Text: text}
+func Text(param osui.Param, text string) *TextComponent {
+	return param.UseParam(&TextComponent{Text: text}).(*TextComponent)
 }

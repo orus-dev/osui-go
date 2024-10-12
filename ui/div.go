@@ -32,7 +32,7 @@ func (d *DivComponent) GetComponentData() *osui.ComponentData {
 }
 
 func (d *DivComponent) Render() string {
-	osui.UseStyle(d.Style)
+	d.Data.Style.UseStyle()
 	frame := osui.NewFrame(d.Data.Width-2, d.Data.Height-2)
 	for i, c := range d.Components {
 		data := c.GetComponentData()
@@ -88,21 +88,14 @@ func (d *DivComponent) Update(key string) bool {
 	return false
 }
 
-func (b *DivComponent) Params(param DivParams) *DivComponent {
-	b.Style = osui.SetDefaults(&param.Style).(*DivStyle)
-	b.Data.Width = osui.LogicValueInt(param.Width == 0, 20, param.Width)
-	return b
-}
-
 func (d *DivComponent) updateActive(newIndex int) {
 	if newIndex >= 0 && newIndex < len(d.Components) && len(d.Components) > 0 {
 		d.ActiveComponent = newIndex
 	}
 }
 
-func Div(components ...osui.Component) *DivComponent {
-	return &DivComponent{
+func Div(param osui.Param, components ...osui.Component) *DivComponent {
+	return param.UseParam(&DivComponent{
 		Components: components,
-		Style:      osui.SetDefaults(&DivStyle{}).(*DivStyle),
-	}
+	}).(*DivComponent)
 }
