@@ -4,127 +4,39 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/orus-dev/osui/colors"
 	"golang.org/x/term"
 )
 
-type Style struct {
-	Background string `json:"background"`
-	Foreground string `json:"foreground"`
-	Outline    string `json:"outline"`
-
-	ActiveBackground string `json:"activeBackground"`
-	ActiveForeground string `json:"activeForeground"`
-	ActiveOutline    string `json:"activeOutline"`
-
-	ClickedBackground string `json:"clickedBackground"`
-	ClickedForeground string `json:"clickedForeground"`
-	ClickedOutline    string `json:"clickedOutline"`
-
-	SelectedBackground string `json:"selectedBackground"`
-	SelectedForeground string `json:"selectedForeground"`
-	SelectedOutline    string `json:"selectedOutline"`
-
-	Cursor         string `json:"cursor"`
-	InactiveCursor string `json:"inactiveCursor"`
+type Key struct {
+	Chars [3]rune
+	Name  string
 }
 
-func (s *Style) SetDefaults() {
-	if s.Cursor != "" {
-		s.Cursor = "> "
-	}
-}
-func (s *Style) UseStyle() {
-	s.Background = colors.AsBg(s.Background)
-	s.Foreground = colors.AsBg(s.Foreground)
-	s.Outline = colors.AsBg(s.Outline)
-
-	s.ActiveBackground = colors.AsBg(s.ActiveBackground)
-	s.ActiveForeground = colors.AsBg(s.ActiveForeground)
-	s.ActiveOutline = colors.AsBg(s.ActiveOutline)
-
-	s.ClickedBackground = colors.AsBg(s.ClickedBackground)
-	s.ClickedForeground = colors.AsFg(s.ClickedForeground)
-	s.ClickedOutline = colors.AsFg(s.ClickedOutline)
-}
-
-type Param struct {
-	Style   Style `json:"style"`
-	X       int   `json:"y"`
-	Y       int   `json:"x"`
-	Width   int   `json:"width"`
-	Height  int   `json:"height"`
-	OnClick func()
-	Keys    map[string]func(string) bool
-	Toggle  bool `json:"useToggle"`
-}
-
-func (p *Param) SetDefaultBindings(keys map[string]func(string) bool) {
-	if p.Keys == nil {
-		p.Keys = keys
-		return
-	}
-	for k, f := range keys {
-		if _, ok := p.Keys[k]; !ok {
-			p.Keys[k] = f
-		}
-	}
-}
-
-func (p *Param) UseParam(c Component) Component {
-	data := c.GetComponentData()
-
-	p.Style.SetDefaults()
-	data.Style = p.Style
-	data.X = p.X
-	data.Y = p.Y
-	if p.Height != 0 {
-		data.Height = p.Height
-	}
-	if p.Width != 0 {
-		data.Width = p.Width
-	}
-
-	if p.OnClick != nil {
-		data.OnClick = p.OnClick
-	} else {
-		data.OnClick = func() {}
-	}
-
-	data.Toggle = p.Toggle
-
-	data.Keys = p.Keys
-
-	return c
-}
-
-type ComponentData struct {
-	X            int
-	Y            int
-	Width        int
-	Height       int
-	DefaultColor string
-	IsActive     bool
-	Style        Style
-	OnClick      func()
-	Keys         map[string]func(string) bool
-	Toggle       bool
-	Screen       *Screen
+type UpdateContext struct {
+	UpdateKind uint8
+	Tick       uint8
+	Key        Key
 }
 
 type Component interface {
 	Render() string
 	GetComponentData() *ComponentData
-	Update(string) bool
+	Update(UpdateContext) bool
 }
 
 type Screen struct {
 	Component Component
+	tickRate  uint8
+	running   bool
 }
 
 func NewScreen() *Screen {
-	return &Screen{}
+	s := Screen{}
+	s.tickRate = 1
+	return &s
 }
 
 func (s *Screen) Render() {
@@ -150,13 +62,22 @@ func (s *Screen) Run(c Component) {
 		panic(err)
 	}
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
-	for {
+	s.running = true
+	for s.running {
 		s.Render()
-		k, _ := ReadKey()
-		if s.Component.Update(k) {
-			ShowCursor()
-			return
+		s.Component.Update(UpdateContext{UpdateKind: UpdateKindKey, Key: ReadKey()})
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+}
+
+func (s *Screen) _() {
+	var tick uint8 = 0
+	for s.running {
+		s.Component.Update(UpdateContext{UpdateKind: UpdateKindTick, Tick: tick})
+		if tick == 255 {
+			tick = 0
 		}
+		time.Sleep(time.Duration(1000/int(s.tickRate)) * time.Millisecond)
 	}
 }
 
@@ -174,3 +95,13 @@ func (s *Screen) SetComponent(c Component) {
 	data.IsActive = true
 	data.DefaultColor = colors.Reset
 }
+
+func (s *Screen) Exit() {
+	s.running = false
+	ShowCursor()
+}
+
+const (
+	UpdateKindKey = uint8(iota)
+	UpdateKindTick
+)

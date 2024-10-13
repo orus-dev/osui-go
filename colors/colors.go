@@ -39,7 +39,6 @@ func AsBg(s string) string {
 	})
 }
 
-
 func AsFg(s string) string {
 	re, _ := regexp.Compile(`\x1b\[4([0-9]+)`)
 	return re.ReplaceAllStringFunc(s, func(match string) string {

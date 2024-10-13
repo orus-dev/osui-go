@@ -9,12 +9,6 @@ import (
 	"github.com/orus-dev/osui/keys"
 )
 
-type InputBoxParams struct {
-	Style  DivStyle
-	Width  int
-	Height int
-}
-
 type InputBoxComponent struct {
 	Data      osui.ComponentData
 	max_size  uint
@@ -33,7 +27,7 @@ func (s InputBoxComponent) Render() string {
 			" %s\n%s│%s%s│%s\n %s",
 			colors.Reset+s.Data.Style.Outline+strings.Repeat("_", int(s.max_size))+colors.Reset,
 			colors.Reset+s.Data.Style.Outline,
-			colors.Combine(s.Data.Style.Foreground, s.Data.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Data.Style.Cursor+"█"+colors.Combine(s.Data.Style.Foreground, s.Data.Style.Background), ""),
+			colors.Combine(s.Data.Style.Foreground, s.Data.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Data.Style.CursorColor+"█"+colors.Combine(s.Data.Style.Foreground, s.Data.Style.Background), ""),
 			strings.Repeat(" ", int(s.max_size)-len(s.InputData)-osui.LogicValueInt(s.Data.IsActive, 1, 0))+colors.Reset+s.Data.Style.Outline,
 			colors.Reset+s.Data.DefaultColor,
 			s.Data.Style.Outline+strings.Repeat("‾", int(s.max_size))+colors.Reset+s.Data.DefaultColor,
@@ -44,43 +38,48 @@ func (s InputBoxComponent) Render() string {
 		" %s\n%s│%s%s\n %s",
 		colors.Reset+s.Data.Style.Outline+strings.Repeat("_", int(s.max_size))+colors.Reset,
 		colors.Reset+s.Data.Style.Outline,
-		colors.Combine(s.Data.Style.Foreground, s.Data.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Data.Style.Cursor+"█"+colors.Reset, s.Data.Style.Outline+"|"+colors.Reset),
+		colors.Combine(s.Data.Style.Foreground, s.Data.Style.Background)+s.InputData+osui.LogicValue(s.Data.IsActive, s.Data.Style.CursorColor+"█"+colors.Reset, s.Data.Style.Outline+"|"+colors.Reset),
 		colors.Reset+s.Data.DefaultColor,
 		colors.Reset+s.Data.Style.Outline+strings.Repeat("‾", int(s.max_size))+colors.Reset+s.Data.DefaultColor,
 	)
 }
 
-func (s *InputBoxComponent) Update(key string) bool {
-	if f, ok := s.Data.Keys["done"]; ok && f(key) {
-		return true
-	} else if f, ok := s.Data.Keys["remove"]; ok && f(key) {
-		if len(s.InputData) > 0 {
-			s.InputData = s.InputData[:len(s.InputData)-1]
-		}
-	} else if f, ok := s.Data.Keys["left"]; ok && f(key) {
-		if s.cursor > 0 {
-			s.cursor--
-		}
-	} else if f, ok := s.Data.Keys["right"]; ok && f(key) {
-		if s.cursor < s.max_size {
-			s.cursor++
-		}
-	} else {
-		if len(key) == 1 {
-			if int(s.max_size) > len(s.InputData) {
-				s.InputData += key
+func (s *InputBoxComponent) Update(ctx osui.UpdateContext) bool {
+	if ctx.UpdateKind == osui.UpdateKindKey {
+		switch s.Data.Keys[ctx.Key.Name] {
+		case "done":
+			s.Data.OnClick()
+			return true
+		case "remove":
+			if len(s.InputData) > 0 {
+				s.InputData = s.InputData[:len(s.InputData)-1]
+			}
+		case "left":
+			if s.cursor > 0 {
+				s.cursor--
+			}
+		case "right":
+			if s.cursor < s.max_size {
+				s.cursor++
+			}
+		default:
+			if ctx.Key.Chars[1] == '\x00' {
+				if int(s.max_size) > len(s.InputData) {
+					s.InputData += string(ctx.Key.Chars[0])
+				}
 			}
 		}
 	}
+
 	return false
 }
 
 func InputBox(param osui.Param, max_size uint) *InputBoxComponent {
-	param.SetDefaultBindings(map[string]func(string) bool{
-		"done":   keys.Enter,
-		"remove": keys.Backspace,
-		"left":   keys.Left,
-		"right":  keys.Right,
+	param.SetDefaultBindings(map[string]string{
+		keys.Enter:     "done",
+		keys.Backspace: "remove",
+		keys.Left:      "left",
+		keys.Right:     "right",
 	})
-	return param.UseParam(&InputBoxComponent{max_size: max_size}).(*InputBoxComponent)
+	return param.UseParam(&InputBoxComponent{max_size: max_size, Data: osui.ComponentData{}}).(*InputBoxComponent)
 }

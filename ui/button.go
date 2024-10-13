@@ -48,17 +48,21 @@ func (b *ButtonComponent) Render() string {
 	)
 }
 
-func (b *ButtonComponent) Update(key string) bool {
-	if f, ok := b.Data.Keys["click"]; ok && f(key) {
-		b.Data.OnClick()
-		if b.Data.Toggle {
-			b.clicked = !b.clicked
-			return false
+func (b *ButtonComponent) Update(ctx osui.UpdateContext) bool {
+	if ctx.UpdateKind == osui.UpdateKindKey {
+		switch b.Data.Keys[ctx.Key.Name] {
+		case "click":
+			b.Data.OnClick()
+			if b.Data.Toggle {
+				b.clicked = !b.clicked
+				return false
+			}
+			b.clicked = true
+			b.Data.Screen.Render()
+			time.Sleep(time.Millisecond * 120)
+			b.clicked = false
 		}
-		b.clicked = true
-		b.Data.Screen.Render()
-		time.Sleep(time.Millisecond * 120)
-		b.clicked = false
+	} else if ctx.UpdateKind == osui.UpdateKindTick {
 	}
 
 	return false
@@ -69,8 +73,8 @@ func (b *ButtonComponent) GetComponentData() *osui.ComponentData {
 }
 
 func Button(param osui.Param, text string) *ButtonComponent {
-	param.SetDefaultBindings(map[string]func(string) bool{
-		"click": keys.Enter,
+	param.SetDefaultBindings(map[string]string{
+		keys.Enter: "click",
 	})
 	return param.UseParam(&ButtonComponent{Text: text,
 		Data: osui.ComponentData{

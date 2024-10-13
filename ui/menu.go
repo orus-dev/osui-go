@@ -31,41 +31,46 @@ func (m *MenuComponent) Render() string {
 
 	for i, item := range m.Items {
 		if i == m.SelectedItem {
-			res = append(res, cursor+colors.Combine(m.Data.Style.SelectedBackground, m.Data.Style.SelectedBackground)+item+colors.Reset+m.Data.DefaultColor)
+			res = append(res, colors.Reset+cursor+m.Data.Style.SelectedBackground+m.Data.Style.SelectedForeground+item+"\x1b[0m ")
 		} else {
-			res = append(res, empty+colors.Combine(m.Data.Style.Foreground, m.Data.Style.Background)+item+colors.Reset+m.Data.DefaultColor)
+			res = append(res, colors.Reset+empty+m.Data.Style.Foreground+m.Data.Style.Background+item)
 		}
 	}
 
 	return strings.Join(res, "\n")
 }
 
-func (m *MenuComponent) Update(key string) bool {
-	if f, ok := m.Data.Keys["up"]; ok && f(key) {
-		if m.SelectedItem > 0 {
-			m.SelectedItem--
-		} else {
-			m.SelectedItem = len(m.Items) - 1
+func (m *MenuComponent) Update(ctx osui.UpdateContext) bool {
+	if ctx.UpdateKind == osui.UpdateKindKey {
+		switch m.Data.Keys[ctx.Key.Name] {
+		case "up":
+			if m.SelectedItem > 0 {
+				m.SelectedItem--
+			} else {
+				m.SelectedItem = len(m.Items) - 1
+			}
+		case "down":
+			if m.SelectedItem+1 < len(m.Items) {
+				m.SelectedItem++
+			} else {
+				m.SelectedItem = 0
+			}
+		case "select":
+			m.Data.OnClick()
+			return true
+		case "exit":
+			return true
 		}
-	} else if f, ok := m.Data.Keys["down"]; ok && f(key) {
-		if m.SelectedItem+1 < len(m.Items) {
-			m.SelectedItem++
-		} else {
-			m.SelectedItem = 0
-		}
-	} else if f, ok := m.Data.Keys["select"]; ok && f(key) {
-		m.Data.OnClick()
-		return true
 	}
 
 	return false
 }
 
 func Menu(param osui.Param, items ...string) *MenuComponent {
-	param.SetDefaultBindings(map[string]func(string) bool{
-		"up":     keys.Up,
-		"down":   keys.Down,
-		"select": keys.Enter,
+	param.SetDefaultBindings(map[string]string{
+		keys.Up:    "up",
+		keys.Down:  "down",
+		keys.Enter: "select",
 	})
 	return param.UseParam(&MenuComponent{
 		Items: items,

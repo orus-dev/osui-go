@@ -1,57 +1,55 @@
 package keys
 
-func Enter(s string) bool {
-	return s == "\r" || s == "\n"
+const (
+	Enter     = "Enter"
+	Tab       = "Tab"
+	ShiftTab  = "ShiftTab"
+	Backspace = "Backspace"
+	Escape    = "Escape"
+	Up        = "Up"
+	Down      = "Down"
+	Left      = "Left"
+	Right     = "Right"
+	CtrlW     = "CtrlW"
+	CtrlS     = "CtrlS"
+	CtrlA     = "CtrlA"
+	CtrlD     = "CtrlD"
+	Error     = "Error"
+)
+
+func Char(key string) string {
+	return "Char(" + key + ")"
 }
 
-func Tab(s string) bool {
-	return s == "\t"
-}
-
-func ShiftTab(s string) bool {
-	return s == "\x1b[Z"
-}
-
-func Backspace(s string) bool {
-	return s == "\x7f" || s == "\b"
-}
-
-func Escape(s string) bool {
-	return s == "\x1b"
-}
-
-func Up(s string) bool {
-	return s == "\x1b[A"
-}
-
-func Down(s string) bool {
-	return s == "\x1b[B"
-}
-
-func Right(s string) bool {
-	return s == "\x1b[C"
-}
-
-func Left(s string) bool {
-	return s == "\x1b[D"
-}
-
-func Char(s string, s1 string) bool {
-	return s == s1
-}
-
-func CtrlW(s string) bool {
-	return s == "\x17" 
-}
-
-func CtrlS(s string) bool {
-	return s == "\x13" 
-}
-
-func CtrlA(s string) bool {
-	return s == "\x01" 
-}
-
-func CtrlD(s string) bool {
-	return s == "\x04" 
+func GetKeyName(key string) string {
+	switch key {
+	case "\r", "\n":
+		return Enter
+	case "\x7f", "\b":
+		return Backspace
+	case "\t":
+		return Tab
+	case "\x1b[Z":
+		return ShiftTab
+	case "\x1b":
+		return Escape
+	case "\x1b[A":
+		return Up
+	case "\x1b[B":
+		return Down
+	case "\x1b[C":
+		return Right
+	case "\x1b[D":
+		return Left
+	case "\x17":
+		return CtrlW
+	case "\x13":
+		return CtrlS
+	case "\x01":
+		return CtrlA
+	case "\x04":
+		return CtrlD
+	default:
+		return Char(key)
+	}
 }

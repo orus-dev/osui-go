@@ -8,21 +8,8 @@ import (
 	"github.com/orus-dev/osui/keys"
 )
 
-type DivParams struct {
-	Style  DivStyle
-	Width  int
-	Height int
-}
-
-type DivStyle struct {
-	Background string `default:"" type:"bg"`
-	Foreground string `default:"" type:"fg"`
-	Outline    string `default:"" type:"fg"`
-}
-
 type DivComponent struct {
 	Data            osui.ComponentData
-	Style           *DivStyle
 	Components      []osui.Component
 	ActiveComponent int
 }
@@ -47,35 +34,43 @@ func (d *DivComponent) Render() string {
 		if data.Height == 0 {
 			data.Height = d.Data.Height - 2
 		}
-		data.DefaultColor = colors.Combine(d.Style.Background, d.Style.Foreground)
+		data.DefaultColor = colors.Combine(d.Data.Style.Background, d.Data.Style.Foreground)
 		data.Screen = d.Data.Screen
 		osui.RenderOnFrame(c, &frame)
 	}
-	if d.Style.Outline == "" {
+	if d.Data.Style.Outline == "" {
 		for i, f := range frame {
-			frame[i] = colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset
+			frame[i] = colors.Combine(d.Data.Style.Foreground, d.Data.Style.Background) + f + colors.Reset
 		}
 		return strings.Join(frame, "\n")
 	} else {
 		for i, f := range frame {
-			frame[i] = d.Style.Outline + "│" + colors.Reset + colors.Combine(d.Style.Foreground, d.Style.Background) + f + colors.Reset + d.Style.Outline + "│" + colors.Reset
+			frame[i] = d.Data.Style.Outline + "│" + colors.Reset + colors.Combine(d.Data.Style.Foreground, d.Data.Style.Background) + f + colors.Reset + d.Data.Style.Outline + "│" + colors.Reset
 		}
 	}
-	return " " + d.Style.Outline + strings.Repeat("_", d.Data.Width-2) + colors.Reset + "\n" + strings.Join(frame, "\n") + "\n " + d.Style.Outline + strings.Repeat("‾", d.Data.Width-2) + colors.Reset
+	return " " + d.Data.Style.Outline + strings.Repeat("_", d.Data.Width-2) + colors.Reset + "\n" + strings.Join(frame, "\n") + "\n " + d.Data.Style.Outline + strings.Repeat("‾", d.Data.Width-2) + colors.Reset
 }
 
-func (d *DivComponent) Update(key string) bool {
-	if f, ok := d.Data.Keys["up"]; ok && f(key) {
-		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "up"))
-	} else if f, ok := d.Data.Keys["down"]; ok && f(key) {
-		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "down"))
-	} else if f, ok := d.Data.Keys["left"]; ok && f(key) {
-		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "left"))
-	} else if f, ok := d.Data.Keys["right"]; ok && f(key) {
-		d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "right"))
-	} else if len(d.Components) > 0 {
+func (d *DivComponent) Update(ctx osui.UpdateContext) bool {
+	if ctx.UpdateKind == osui.UpdateKindKey {
+		switch d.Data.Keys[ctx.Key.Name] {
+		case "up":
+			d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "up"))
+		case "down":
+			d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "down"))
+		case "left":
+			d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "left"))
+		case "right":
+			d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "right"))
+		default:
+			d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
+			if d.Components[d.ActiveComponent].Update(ctx) {
+				d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "down"))
+			}
+		}
+	} else if ctx.UpdateKind == osui.UpdateKindTick {
 		d.Components[d.ActiveComponent].GetComponentData().IsActive = d.Data.IsActive
-		if d.Components[d.ActiveComponent].Update(key) {
+		if d.Components[d.ActiveComponent].Update(ctx) {
 			d.updateActive(findClosestComponent(d.Components, d.ActiveComponent, "down"))
 		}
 	}
@@ -90,11 +85,11 @@ func (d *DivComponent) updateActive(newIndex int) {
 }
 
 func Div(param osui.Param, components ...osui.Component) *DivComponent {
-	param.SetDefaultBindings(map[string]func(string) bool{
-		"up": keys.CtrlW,
-		"down": keys.CtrlS,
-		"left": keys.CtrlA,
-		"right": keys.CtrlD,
+	param.SetDefaultBindings(map[string]string{
+		keys.CtrlW: "up",
+		keys.CtrlS: "down",
+		keys.CtrlA: "left",
+		keys.CtrlD: "right",
 	})
 	return param.UseParam(&DivComponent{
 		Components: components,

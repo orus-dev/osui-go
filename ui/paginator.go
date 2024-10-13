@@ -9,20 +9,8 @@ import (
 	"github.com/orus-dev/osui/keys"
 )
 
-type PaginatorParams struct {
-	Style  DivStyle
-	Width  int
-	Height int
-}
-
-type PaginatorStyle struct {
-	Active   string `default:"\033[32m"`
-	Inactive string `default:""`
-}
-
 type PaginatorComponent struct {
 	Data            osui.ComponentData
-	Style           *PaginatorStyle
 	Components      []osui.Component
 	ActiveComponent int
 }
@@ -39,10 +27,10 @@ func (p *PaginatorComponent) Render() string {
 	for i, c := range p.Components {
 		data := c.GetComponentData()
 		if i == p.ActiveComponent {
-			pgs += p.Style.Active + "•" + colors.Reset
+			pgs += p.Data.Style.SelectedForeground + data.Style.SelectedBackground + "•" + colors.Reset
 			data.IsActive = true
 		} else {
-			pgs += colors.Reset + p.Style.Inactive + "•"
+			pgs += colors.Reset + p.Data.Style.Foreground + data.Style.Background + "•"
 			data.IsActive = false
 		}
 		if data.Width == 0 {
@@ -58,33 +46,37 @@ func (p *PaginatorComponent) Render() string {
 	for i, f := range frame {
 		frame[i] = colors.Reset + p.Data.DefaultColor + f + colors.Reset
 	}
-	return fmt.Sprintf("%s\n%s", pgs, colors.Reset+strings.Join(frame, "\n"))
+	return fmt.Sprintf("%s\n%s", pgs+" ", colors.Reset+strings.Join(frame, "\n"))
 }
 
-func (p *PaginatorComponent) Update(key string) bool {
-	if f, ok := p.Data.Keys["previous"]; ok && f(key) {
-		if p.ActiveComponent > 0 {
-			p.updateActive(p.ActiveComponent - 1)
-		} else {
-			p.updateActive(len(p.Components) - 1)
-		}
-	} else if f, ok := p.Data.Keys["next"]; ok && f(key) {
-		if p.ActiveComponent < len(p.Components)-1 {
-			p.updateActive(p.ActiveComponent + 1)
-		} else {
-			p.updateActive(0)
-		}
-	} else if f, ok := p.Data.Keys["exit"]; ok && f(key) {
-		fmt.Print("\n\n")
-		return true
-	} else {
-		if len(p.Components) > 0 {
-			p.Components[p.ActiveComponent].GetComponentData().IsActive = p.Data.IsActive
-			if p.Components[p.ActiveComponent].Update(key) {
-				if p.ActiveComponent < len(p.Components)-1 {
-					p.updateActive(p.ActiveComponent + 1)
-				} else {
-					p.updateActive(0)
+func (p *PaginatorComponent) Update(ctx osui.UpdateContext) bool {
+	if ctx.UpdateKind == osui.UpdateKindKey {
+		switch p.Data.Keys[ctx.Key.Name] {
+		case "previous":
+			if p.ActiveComponent > 0 {
+				p.updateActive(p.ActiveComponent - 1)
+			} else {
+				p.updateActive(len(p.Components) - 1)
+			}
+		case "next":
+			if p.ActiveComponent < len(p.Components)-1 {
+				p.updateActive(p.ActiveComponent + 1)
+			} else {
+				p.updateActive(0)
+			}
+		case "exit":
+			p.Data.OnClick()
+			fmt.Print("\n\n")
+			return true
+		default:
+			if len(p.Components) > 0 {
+				p.Components[p.ActiveComponent].GetComponentData().IsActive = p.Data.IsActive
+				if p.Components[p.ActiveComponent].Update(ctx) {
+					if p.ActiveComponent < len(p.Components)-1 {
+						p.updateActive(p.ActiveComponent + 1)
+					} else {
+						p.updateActive(0)
+					}
 				}
 			}
 		}
@@ -99,10 +91,10 @@ func (p *PaginatorComponent) updateActive(newIndex int) {
 }
 
 func Paginator(param osui.Param, pages ...osui.Component) *PaginatorComponent {
-	param.SetDefaultBindings(map[string]func(string) bool{
-		"previous": keys.ShiftTab,
-		"next":     keys.Tab,
-		"exit":     keys.Escape,
+	param.SetDefaultBindings(map[string]string{
+		keys.ShiftTab: "previous",
+		keys.Tab:      "next",
+		keys.Escape:   "exit",
 	})
 	return param.UseParam(&PaginatorComponent{
 		Components: pages,

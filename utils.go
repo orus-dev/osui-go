@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/nathan-fiscaletti/consolesize-go"
+	"github.com/orus-dev/osui/keys"
 )
 
 var re = regexp.MustCompile(`(\x1b\[([0-9;]*)[a-zA-Z])+`)
@@ -67,13 +68,13 @@ func RenderOnFrame(c Component, frame *[]string) {
 	}
 }
 
-func ReadKey() (string, error) {
+func ReadKey() Key {
 	var b [3]byte
 	n, err := os.Stdin.Read(b[:])
 	if err != nil {
-		return "", err
+		return Key{Chars: [3]rune{'E', 'r', 'r'}, Name: err.Error()}
 	}
-	return string(b[:n]), nil
+	return Key{Chars: [3]rune{rune(b[0]), rune(b[1]), rune(b[2])}, Name: keys.GetKeyName(string(b[:n]))}
 }
 
 func NewFrame(width, height int) []string {
